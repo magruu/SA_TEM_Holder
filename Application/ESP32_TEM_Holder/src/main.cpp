@@ -4,12 +4,26 @@
 #include "SPIFFS.h"
 
 // Replace with your network credentials
-const char* ssid = "MagruuFi";
-const char* password = "kayabanana";
+const char* ssid = "NETGEAR";
+const char* password = "mhsi12jaia";
+
+// Input Parameter to connect Frontend and Backend
+const char* PARAM_INPUT = "value";
+
+String sliderValue = "0";
 
 // Create AsyncWebServer object on port 80
 AsyncWebServer server(80);
  
+// Replaces placeholder with button section in your web page
+String processor(const String& var){
+  //Serial.println(var);
+  if (var == "SLIDERVALUE"){
+    return sliderValue;
+  }
+  return String();
+}
+
 void setup(){
   // Serial port for debugging purposes
   Serial.begin(115200);
@@ -66,6 +80,19 @@ void setup(){
   });
 
 
+  server.on("/slider", HTTP_GET, [] (AsyncWebServerRequest *request) {
+  String inputMessage;
+  // GET input1 value on <ESP_IP>/slider?value=<inputMessage>
+  if (request->hasParam(PARAM_INPUT)) {
+    inputMessage = request->getParam(PARAM_INPUT)->value();
+    sliderValue = inputMessage;
+  }
+  else {
+    inputMessage = "No message sent";
+  }
+  Serial.println(inputMessage);
+  request->send(200, "text/plain", "OK");
+  });
 
   // Start server
   server.begin();

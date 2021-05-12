@@ -7,29 +7,38 @@
 const char* ssid = "MagruuFi";
 const char* password = "kayabanana";
 
-// Set LED GPIO
-const int ledPin = 2;
-// Stores LED state
-String ledState;
-
 // Create AsyncWebServer object on port 80
 AsyncWebServer server(80);
-
-// Replaces placeholder with LED state value
-String processor(const String& var){
-
-}
  
 void setup(){
   // Serial port for debugging purposes
   Serial.begin(115200);
-  pinMode(ledPin, OUTPUT);
 
   // Initialize SPIFFS
   if(!SPIFFS.begin(true)){
     Serial.println("An Error has occurred while mounting SPIFFS");
     return;
   }
+
+  // Display used space of SPIFFS
+  unsigned int totalBytes = SPIFFS.totalBytes();
+  unsigned int usedBytes = SPIFFS.usedBytes();
+
+  Serial.println("===== File system info =====");
+
+  Serial.print("Total space:      ");
+  Serial.print(totalBytes);
+  Serial.println("bytes");
+
+  Serial.print("Total space used: ");
+  Serial.print(usedBytes);
+  Serial.println("bytes");
+
+  Serial.print("Remaining free space: ");
+  Serial.print(totalBytes - usedBytes);
+  Serial.println("bytes");
+
+  Serial.println();
 
   // Connect to Wi-Fi
   WiFi.begin(ssid, password);
@@ -43,14 +52,20 @@ void setup(){
 
   // Route for root / web page
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send(SPIFFS, "/index.html", String(), false, processor);
+    request->send(SPIFFS, "/index.html", "text/html");
   });
   
   // Route to load style.css file
   server.on("/style.css", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send(SPIFFS, "/style.css", "text/css");
   });
-  
+
+  // Route to load script.js file
+  server.on("/script.js", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send(SPIFFS, "/script.js", "text/javascript");
+  });
+
+
 
   // Start server
   server.begin();

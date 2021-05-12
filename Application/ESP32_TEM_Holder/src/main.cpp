@@ -7,7 +7,11 @@
 const char* ssid = "NETGEAR";
 const char* password = "mhsi12jaia";
 
-// Input Parameter to connect Frontend and Backend
+// Led Pin
+int LED_PIN = 2;
+
+
+// Input Parameters to connect Frontend and Backend
 const char* PARAM_INPUT = "value";
 
 String sliderValue = "0";
@@ -15,18 +19,22 @@ String sliderValue = "0";
 // Create AsyncWebServer object on port 80
 AsyncWebServer server(80);
  
-// Replaces placeholder with button section in your web page
-String processor(const String& var){
-  //Serial.println(var);
-  if (var == "SLIDERVALUE"){
-    return sliderValue;
+// move stepper motor to the according position
+void process_data(){
+  if(digitalRead(LED_PIN) == LOW){
+    digitalWrite(LED_PIN, HIGH);
+  } else{
+    digitalWrite(LED_PIN, LOW);
   }
-  return String();
+    
 }
 
 void setup(){
   // Serial port for debugging purposes
   Serial.begin(115200);
+
+  // Setup LED
+  pinMode(LED_PIN, OUTPUT);
 
   // Initialize SPIFFS
   if(!SPIFFS.begin(true)){
@@ -86,6 +94,7 @@ void setup(){
   if (request->hasParam(PARAM_INPUT)) {
     inputMessage = request->getParam(PARAM_INPUT)->value();
     sliderValue = inputMessage;
+    process_data();
   }
   else {
     inputMessage = "No message sent";

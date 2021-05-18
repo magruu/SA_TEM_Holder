@@ -3,6 +3,7 @@
 #include "ESPAsyncWebServer.h"
 #include "AsyncTCP.h"
 #include "SPIFFS.h"
+#include <ArduinoJson.h>
 
 // Replace with your network credentials
 const char* ssid = "MagruuFi";
@@ -11,16 +12,16 @@ const char* password = "kayabanana";
 // Led Pin
 int LED_PIN = 2;
 
+// Initialize JSON element
+DynamicJsonDocument json(1024);
 
 // Input Parameters to connect Frontend and Backend
-const char* PARAM_INPUT = "value";
-
 String sliderValue = "0";
 
 // Create AsyncWebServer object on port 80
 AsyncWebServer server(80);
 
-// Creat WebSocketServer (usually on port 81)
+// Create WebSocketServer (usually on port 81)
 AsyncWebSocket ws("/ws");
  
 // move stepper motor to the according position
@@ -110,7 +111,7 @@ void setup(){
   Serial.println(WiFi.localIP());
   
   // Initialize the WebSocket
-  
+  ws.onEvent(onEvent);
   server.addHandler(&ws);
 
   // Route for root / web page
@@ -128,9 +129,14 @@ void setup(){
     request->send(SPIFFS, "/script.js", "text/javascript");
   });
 
+  // JSON elements
+  json["message_type"] = "data";
+  json["data"] = 100;
+  json["ack"] = "OK";
+
   // Start server
   server.begin();
-  ws.onEvent(onEvent);
+
 }
  
 void loop(){

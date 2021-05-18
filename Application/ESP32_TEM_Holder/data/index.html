@@ -32,16 +32,15 @@
         console.log(event.data);
 
         if(event.data == "OK"){
-          removeNotification('noti_pos_setting');
+          removeNotification(notification_id_setting_position);
           var button = document.getElementById('button_holder_set');
           button.classList.remove("is-loading");
-          //if(document.getElementById('not_pos_setting') == null){
-            addNotification('notification_setting_position', notification_msg_position_set);
           
-            setTimeout(function(){
-              removeNotification('noti_pos_set');
-              }, 2000);
-          //}
+
+          addNotification(notification_msg_position_set);
+          setTimeout(function(){
+            removeNotification(notification_id_position_set);
+            }, 2000);
 
         }
 

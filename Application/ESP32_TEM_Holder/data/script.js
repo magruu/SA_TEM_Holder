@@ -1,15 +1,21 @@
 
 /** Global variables **/ 
 
+// Placeholder/Position where notifications are placed
+var notfiication_place = 'notification_setting_position';
+
 // Notifications to be sent 
-var notification_msg_setting_position = '<div class="noti_pos_setting notification is-warning" id="noti_pos_setting"> <h3> Setting Holder Position ... </h3><progress class="progress is-medium is-dark" max="100">45%</progress></div>';
-var notification_msg_position_set = '<div class="noti_pos_set notification is-success" id="noti_pos_set"><h3 class="has-text-white"> Holder Position set!</h3></div>';
+var notification_msg_setting_position = '<div class="notification is-warning" id="notification_msg_setting_position"> <h3> Setting Holder Position ... </h3><progress class="progress is-medium is-dark" max="100">45%</progress></div>';
+var notification_id_setting_position = 'notification_msg_setting_position';
 
-var notification_msg_server_diconnect = '<div class="noti_ws_disconnect notification is-danger" id="noti_pos_set"><h3>Server got disconnected! Please refresh page...</h3></div>';
+var notification_msg_position_set = '<div class="notification is-success" id="notification_msg_position_set"><h3 class="has-text-white"> Holder Position set!</h3></div>';
+var notification_id_position_set = 'notification_msg_position_set';
 
-// Holder Position Status
-var position_set = false;
+var notification_msg_ws_diconnect = '<div class="notification is-danger" id="notification_msg_ws_diconnect"><h3>Server got disconnected! Please refresh page...</h3></div>';
+var notification_id_ws_diconnect = 'notification_msg_ws_diconnect';
 
+var notification_msg_calibration = '<div class="notification is-warning" id="notification_msg_calibration"><h3>You have entered calibration mode!</h3> <h4>Be careful, you could damage the holder irreversibly</h4></div>';
+var notification_id_calibration = 'notification_msg_calibration';
 
 /** Javascript Functions **/
 
@@ -40,6 +46,7 @@ function slider_change(){
 
 }
 
+// check boxes functionality
 function set_probe_pos(id){
 
   var slider = document.getElementById("sliderWithValue");
@@ -67,7 +74,7 @@ function set_probe_pos(id){
 }
 
 
-// moves the arrow to the right position
+// moves the arrow to the correct position
 function arrow_position(){
 var slider = document.getElementById("sliderWithValue");
 var pos_2 = (slider.max - slider.min)/2;
@@ -78,10 +85,7 @@ pos_arrow.style.left = (parseFloat(slider.value)-pos_2)*0.15 + '%';
 // plus//minus button on slider functionality
 function slider_plus_minus_btn(plus_minus) {
   var slider = document.getElementById("sliderWithValue");
-  var output = document.getElementById('value');
-
-  var operator;
-
+  
   switch (plus_minus) {
     case 'plus':
       slider.value = parseInt(slider.value) + parseInt(slider.step);
@@ -96,28 +100,23 @@ function slider_plus_minus_btn(plus_minus) {
   slider_change();
 }
 
-//holder position and send toast/notification
+//Sets holder position, sends toast/notification and sends desired holder position to backend
 function set_holder_position_btn(){
   var button = document.getElementById('button_holder_set');
   var value = document.getElementById('sliderWithValue').value; // slider value
 
   button.className += " is-loading";
-  addNotification('notification_setting_position', notification_msg_setting_position);
-
-  //document.getElementById("notification").classList.add('notification_msg_setting_position');
+  addNotification(notification_msg_setting_position);
 
   console.log(value);
   webSocket.send(value); // send slider value to backend
 
-  // setTimeout(function(){button.classList.remove("is-loading");},4500);
-
 }
 
-// add notification
-function addNotification(id, msg) {
-  //var notification_setting = document.getElementById(id);
-  var div = document.getElementById(id);
-  div.innerHTML += msg;
+// adds notification to the status panel
+function addNotification(message) {
+  var div = document.getElementById(notfiication_place);
+  div.innerHTML += message;
 }
 
 // function addNotification(id, msg, msg_id){
@@ -133,8 +132,6 @@ function removeNotification(msg_id){
   newdiv.style.opacity = '0';
   newdiv.remove();
 }
-
-
 
 //** switch functionality */ 
 // change to Live View Mode

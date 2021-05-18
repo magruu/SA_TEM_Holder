@@ -17,7 +17,6 @@ function slider_change(){
   var slider = document.getElementById("sliderWithValue");
   var output = document.getElementById('value');
 
-  var probe_pos = document.getElementsByName("RadioInline");
   var probe_pos_1 = document.getElementById("Probe_Pos_1");
   var probe_pos_2 = document.getElementById("Probe_Pos_2");
   var probe_pos_3 = document.getElementById("Probe_Pos_3");
@@ -26,25 +25,16 @@ function slider_change(){
   var pos_2 = (slider.max - slider.min)/2;
   var pos_3 = slider.max - 50;
 
-
-  var plus_btn = document.getElementById("slider_plus_icon");
-  var minus_btn = document.getElementById("slider_minus_icon");
-
   output.innerHTML = slider.value;
 
-  slider.oninput = function(){
-    output.innerHTML = this.value;
-
-    if(this.value > (pos_3+pos_2)/2){
-      probe_pos_3.checked = true;
-    } else if(this.value < ((pos_1+pos_2)/2)){
-      probe_pos_1.checked = true;
-    } else {
-      probe_pos_2.checked = true;
-    }
-    arrow_function();
-    
+  if(this.value > (pos_3+pos_2)/2){
+    probe_pos_3.checked = true;
+  } else if(this.value < ((pos_1+pos_2)/2)){
+    probe_pos_1.checked = true;
+  } else {
+    probe_pos_2.checked = true;
   }
+  arrow_position();
 
 }
 
@@ -71,12 +61,12 @@ function set_probe_pos(id){
   }
   slider.value = position;
   output.innerHTML = position;
-  arrow_function();
+  arrow_position();
 }
 
 
 // moves the arrow to the right position
-function arrow_function(){
+function arrow_position(){
 var slider = document.getElementById("sliderWithValue");
 var pos_2 = (slider.max - slider.min)/2;
 var pos_arrow = document.getElementById("arrow_position");
@@ -101,14 +91,12 @@ function slider_plus_minus_btn(plus_minus) {
       break;
   }
   output.innerHTML = slider.value;
-  arrow_function();
+  arrow_position();
 }
 
 //holder position and send toast/notification
 function set_holder_position_btn(){
   var button = document.getElementById('button_holder_set');
-
-  //get_data(); //get the current slider position
 
   button.className += " is-loading";
   addNotifcation('notification_setting_position', notification_msg_setting_position);
@@ -155,24 +143,15 @@ switch_Live_Mode.oninput = function(){
 
 // change to Precision Mode
 function switch_Precision_Mode(){
-var switch_Precision_Mode = document.getElementById('switch_Precision_Mode');
-var slider = document.getElementById("sliderWithValue");
-switch_Precision_Mode.oninput = function(){
-  if(switch_Precision_Mode.checked == true){
-    slider.step= 1;
-  } else {
-    slider.step= 10;
+  var switch_Precision_Mode = document.getElementById('switch_Precision_Mode');
+  var slider = document.getElementById("sliderWithValue");
+  switch_Precision_Mode.oninput = function(){
+    if(switch_Precision_Mode.checked == true){
+      slider.step= 1;
+    } else {
+      slider.step= 10;
+    }
   }
-}
-}
-
-
-// get data from slider and make an http get request
-function get_data(){
-var xhr = new XMLHttpRequest();
-var slider = document.getElementById('sliderWithValue');
-xhr.open("GET", "/slider?value="+slider.value, true);
-xhr.send();
 }
 
 

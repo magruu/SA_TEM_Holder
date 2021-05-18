@@ -2,8 +2,10 @@
 /** Global variables **/ 
 
 // Notifications to be sent 
-var notification_msg_setting_position = '<div class="notification is-warning" id="noti_pos_setting"> <h3> Setting Holder Position ... </h3><progress class="progress is-medium is-dark" max="100">45%</progress></div>';
-var notification_msg_position_set = '<div class="notification is-success" id="noti_pos_set"><h3 class="has-text-white"> Holder Position set!</h3></div>';
+var notification_msg_setting_position = '<div class="noti_pos_setting notification is-warning" id="noti_pos_setting"> <h3> Setting Holder Position ... </h3><progress class="progress is-medium is-dark" max="100">45%</progress></div>';
+var notification_msg_position_set = '<div class="noti_pos_set notification is-success" id="noti_pos_set"><h3 class="has-text-white"> Holder Position set!</h3></div>';
+
+var notification_msg_server_diconnect = '<div class="noti_ws_disconnect notification is-danger" id="noti_pos_set"><h3>Server got disconnected! Please refresh page...</h3></div>';
 
 // Holder Position Status
 var position_set = false;
@@ -113,8 +115,8 @@ function set_holder_position_btn(){
 
 // add notification
 function addNotification(id, msg) {
-  var notification_setting = document.getElementById(id);
-  const  div = document.getElementById(id);
+  //var notification_setting = document.getElementById(id);
+  var div = document.getElementById(id);
   div.innerHTML += msg;
 }
 
@@ -127,9 +129,9 @@ function addNotification(id, msg) {
 // }
 
 function removeNotification(msg_id){
-  let newdiv = document.getElementById(msg_id);
+  var newdiv = document.getElementById(msg_id);
   newdiv.style.opacity = '0';
-  newdiv.addEventListener('transitionend', () => {newdiv.remove()});
+  newdiv.remove();
 }
 
 

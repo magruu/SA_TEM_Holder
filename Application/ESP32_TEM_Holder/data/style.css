@@ -1,6 +1,10 @@
 
-#notification {
+#noti_pos_setting {
     transition: opacity 0.5s;
+}
+
+#noti_pos_set {
+  transition: opacity 0.5s;
 }
 
 .slider_button{

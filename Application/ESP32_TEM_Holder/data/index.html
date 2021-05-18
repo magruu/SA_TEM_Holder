@@ -11,6 +11,9 @@
 
     <!-- own  stylesheet -->
     <link rel="stylesheet" href="/style.css">
+    <!-- Placeholder for own dynamic stylesheet-->
+    <style id="myStyle"></style>
+
     <!-- bulma extension javascript -->
     <script src="https://cdn.jsdelivr.net/npm/bulma-extensions@6.2.7/dist/js/bulma-extensions.min.js"></script>
 
@@ -25,14 +28,49 @@
       var webSocket = new WebSocket("ws://"+address+"/ws");
       
       webSocket.onmessage = function(event) {
+
         console.log(event.data);
+
+        if(event.data == "OK"){
+          removeNotification('noti_pos_setting');
+          var button = document.getElementById('button_holder_set');
+          button.classList.remove("is-loading");
+          //if(document.getElementById('not_pos_setting') == null){
+            addNotification('notification_setting_position', notification_msg_position_set);
+          
+            setTimeout(function(){
+              removeNotification('noti_pos_set');
+              }, 2000);
+          //}
+
+        }
+
+        // var newdiv = document.getElementById("notification");
+        // newdiv.style.opacity = '0';
+        // newdiv.addEventListener('transitionend', () => newdiv.remove());
         
-        addNotifcation('notification_setting_position', notification_msg_position_set);
+        // addNotifcation('notification_setting_position', notification_msg_position_set);
+
+        // newdiv = document.getElementById("notification");
+        
+        // setTimeout(function(){
+        // newdiv.style.opacity = '0';
+        // newdiv.addEventListener('transitionend', () => newdiv.remove());
+        // }, 2000);
+
+        // var button = document.getElementById('button_holder_set');
+
+        // button.classList.remove("is-loading");
+        
 
       }
       
       webSocket.onopen = function(event) {
-        console.log("Connection opened!")
+        console.log("Connection opened!");
+      }
+
+      webSocket.onclose = function(event) {
+        console.log("Disconnected client");
       }
 
 
@@ -60,7 +98,7 @@
         <div class="columns is-centered">
 
         <!-- Positioning Section -->
-          <!-- slider and image-->
+          <!-- Image and Positioning Arrow-->
           <div class="column content is-left  is-half ">
             <h2>Position</h2>
             <div class="box content is-small">

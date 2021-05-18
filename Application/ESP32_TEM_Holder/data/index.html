@@ -30,46 +30,19 @@
       webSocket.onmessage = function(event) {
 
         console.log(event.data);
-
-        if(event.data == "OK"){
-          removeNotification(notification_id_setting_position);
-          var button = document.getElementById('button_holder_set');
-          button.classList.remove("is-loading");
-          
-
-          addNotification(notification_msg_position_set);
-          setTimeout(function(){
-            removeNotification(notification_id_position_set);
-            }, 2000);
-
-        }
-
-        // var newdiv = document.getElementById("notification");
-        // newdiv.style.opacity = '0';
-        // newdiv.addEventListener('transitionend', () => newdiv.remove());
-        
-        // addNotifcation('notification_setting_position', notification_msg_position_set);
-
-        // newdiv = document.getElementById("notification");
-        
-        // setTimeout(function(){
-        // newdiv.style.opacity = '0';
-        // newdiv.addEventListener('transitionend', () => newdiv.remove());
-        // }, 2000);
-
-        // var button = document.getElementById('button_holder_set');
-
-        // button.classList.remove("is-loading");
-        
-
+        message_handler(event);
       }
       
       webSocket.onopen = function(event) {
         console.log("Connection opened!");
+        if(document.getElementById(notification_id_ws_diconnect) != null){
+          removeNotification(notification_id_ws_diconnect);
+        }
       }
 
       webSocket.onclose = function(event) {
         console.log("Disconnected client");
+        addNotification(notification_msg_ws_diconnect);
       }
 
 

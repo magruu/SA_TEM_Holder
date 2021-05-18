@@ -162,3 +162,31 @@ function switch_Precision_Mode(){
 }
 
 
+function message_handler(event){
+
+  switch (msg_type) {
+    case data:
+      
+      break;
+    case ack:
+
+      break;
+    case error:
+
+      break;
+    default:
+      break;
+  }
+  
+  if(event.data == "OK"){
+    removeNotification(notification_id_setting_position);
+    var button = document.getElementById('button_holder_set');
+    button.classList.remove("is-loading");
+    
+
+    addNotification(notification_msg_position_set);
+    setTimeout(function(){
+      removeNotification(notification_id_position_set);
+      }, 2000);
+  }
+}

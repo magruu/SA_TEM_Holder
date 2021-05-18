@@ -30,27 +30,6 @@ function slider_change(){
   var plus_btn = document.getElementById("slider_plus_icon");
   var minus_btn = document.getElementById("slider_minus_icon");
 
-  // set position with position button 1/2/3
-  probe_pos_3.onclick = function(){
-      slider.value = pos_3;
-      output.innerHTML = slider.value;
-      arrow_function();
-  }
-
-  probe_pos_2.onclick = function(){
-      slider.value = pos_2;
-      output.innerHTML = slider.value;
-      arrow_function();
-      
-  }
-
-  probe_pos_1.onclick = function(){
-      slider.value = pos_1;
-      output.innerHTML = slider.value;
-      arrow_function();
-      
-  }
-
   output.innerHTML = slider.value;
 
   slider.oninput = function(){
@@ -67,7 +46,32 @@ function slider_change(){
     
   }
 
-  
+}
+
+function set_probe_pos(id){
+
+  var slider = document.getElementById("sliderWithValue");
+  var output = document.getElementById('value');
+
+  var pos_1 = parseInt(slider.min) + 50;
+  var pos_2 = (slider.max - slider.min)/2;
+  var pos_3 = slider.max - 50;
+
+  var position;
+  switch (id) {
+    case "Probe_Pos_1":
+      position = pos_1;
+      break;
+    case "Probe_Pos_2":
+      position = pos_2;
+      break;
+    case "Probe_Pos_3":
+      position = pos_3;
+      break;
+  }
+  slider.value = position;
+  output.innerHTML = position;
+  arrow_function();
 }
 
 
@@ -79,28 +83,25 @@ var pos_arrow = document.getElementById("arrow_position");
 pos_arrow.style.left = (parseFloat(slider.value)-pos_2)*0.15 + '%';
 }
 
-// plus button on slider functionality
-function slider_plus() {
-
-var slider = document.getElementById("sliderWithValue");
-var output = document.getElementById('value');
-
-slider.value = parseInt(slider.value) + parseInt(slider.step);
-output.innerHTML = slider.value;
-arrow_function();
-
-}
-
-// minus button on slider functionality
-function slider_minus(){
-
+// plus//minus button on slider functionality
+function slider_plus_minus_btn(plus_minus) {
   var slider = document.getElementById("sliderWithValue");
   var output = document.getElementById('value');
 
-  slider.value = parseInt(slider.value) - parseInt(slider.step);
+  var operator;
+
+  switch (plus_minus) {
+    case 'plus':
+      slider.value = parseInt(slider.value) + parseInt(slider.step);
+      break;
+    case 'minus':
+      slider.value = parseInt(slider.value) - parseInt(slider.step);
+      break;
+    default:
+      break;
+  }
   output.innerHTML = slider.value;
   arrow_function();
-  
 }
 
 //holder position and send toast/notification
@@ -125,7 +126,7 @@ function set_holder_position_btn(){
 
 // add notification
 function addNotifcation(id, msg) {
-  var notification_setting = document.getElementById('notification_setting_position');
+  var notification_setting = document.getElementById(id);
   const  div = document.getElementById(id);
   div.innerHTML += msg;
 

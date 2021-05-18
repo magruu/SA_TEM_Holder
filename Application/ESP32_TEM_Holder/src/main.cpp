@@ -1,11 +1,12 @@
 
 #include "WiFi.h"
 #include "ESPAsyncWebServer.h"
+#include "AsyncTCP.h"
 #include "SPIFFS.h"
 
 // Replace with your network credentials
-const char* ssid = "NETGEAR";
-const char* password = "mhsi12jaia";
+const char* ssid = "MagruuFi";
+const char* password = "kayabanana";
 
 // Led Pin
 int LED_PIN = 2;
@@ -18,6 +19,9 @@ String sliderValue = "0";
 
 // Create AsyncWebServer object on port 80
 AsyncWebServer server(80);
+
+// Creat WebSocketServer (usually on port 81)
+AsyncWebSocket ws("/ws");
  
 // move stepper motor to the according position
 void process_data(){
@@ -27,6 +31,39 @@ void process_data(){
     digitalWrite(LED_PIN, LOW);
   }
     
+}
+
+// Websocket functions
+
+// Handles the received message
+void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
+  AwsFrameInfo *info = (AwsFrameInfo*)arg;
+  if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) {
+    data[len] = 0;
+    Serial.println((char*)data);
+    process_data();
+    delay(1000);
+    ws.textAll("OK");
+  }
+}
+
+// Gets called when an event occurs on the WebSocket
+void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type,
+ void *arg, uint8_t *data, size_t len) {
+  switch (type) {
+    case WS_EVT_CONNECT:
+      Serial.printf("WebSocket client #%u connected from %s\n", client->id(), client->remoteIP().toString().c_str());
+      break;
+    case WS_EVT_DISCONNECT:
+      Serial.printf("WebSocket client #%u disconnected\n", client->id());
+      break;
+    case WS_EVT_DATA:
+      handleWebSocketMessage(arg, data, len);
+      break;
+    case WS_EVT_PONG:
+    case WS_EVT_ERROR:
+      break;
+  }
 }
 
 void setup(){
@@ -71,6 +108,10 @@ void setup(){
 
   // Print ESP32 Local IP Address
   Serial.println(WiFi.localIP());
+  
+  // Initialize the WebSocket
+  
+  server.addHandler(&ws);
 
   // Route for root / web page
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
@@ -87,26 +128,11 @@ void setup(){
     request->send(SPIFFS, "/script.js", "text/javascript");
   });
 
-
-  server.on("/slider", HTTP_GET, [] (AsyncWebServerRequest *request) {
-  String inputMessage;
-  // GET input1 value on <ESP_IP>/slider?value=<inputMessage>
-  if (request->hasParam(PARAM_INPUT)) {
-    inputMessage = request->getParam(PARAM_INPUT)->value();
-    sliderValue = inputMessage;
-    process_data();
-  }
-  else {
-    inputMessage = "No message sent";
-  }
-  Serial.println(inputMessage);
-  request->send(200, "text/plain", "OK");
-  });
-
   // Start server
   server.begin();
+  ws.onEvent(onEvent);
 }
  
 void loop(){
-  
+  ws.cleanupClients();
 }

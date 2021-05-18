@@ -16,6 +16,32 @@
 
     <!-- own javascript bits -->
     <script src="/script.js"></script>
+    
+    <!-- Javascipt bits that have to be called here-->
+    <script>
+
+      // Websocket Functionality
+      var webSocket = new WebSocket("ws://192.168.80.254/ws");
+      
+      var count = 0;
+      webSocket.onmessage = function(event) {
+        console.log(event.data);
+        console.log(count);
+        count +=1;
+        
+        
+        webSocket.send('Msg count = ' + count.toString());
+        //position_set = true;
+        addNotifcation('notification_setting_position', notification_msg_position_set);
+        //position_set = false;
+      }
+      
+      webSocket.onopen = function(event) {
+        console.log("Connection opened!")
+      }
+
+
+    </script>
 
   </head>
 

@@ -1,4 +1,15 @@
 
+/** Global variables **/ 
+
+// Notifications to be sent 
+var notification_msg_setting_position = '<div class="notification is-warning" id="notification"> <h3> Setting Holder Position ... </h3><progress class="progress is-medium is-dark" max="100">45%</progress></div>';
+var notification_msg_position_set = '<div class="notification is-success" id="notification"><h3 class="has-text-white"> Holder Position set!</h3></div>';
+
+// Holder Position Status
+var position_set = false;
+
+
+/** Javascript Functions **/
 
 //slider functionality
 function slider_change(){
@@ -92,20 +103,17 @@ function slider_minus(){
   
 }
 
-
-
 //holder position and send toast/notification
 function set_holder_position_btn(){
   var button = document.getElementById('button_holder_set');
 
-  var notification_msg_setting_position = '<div class="notification is-warning" id="notification"> <h3> Setting Holder Position ... </h3><progress class="progress is-medium is-dark" max="100">45%</progress></div>';
-  var notification_msg_position_set = '<div class="notification is-success" id="notification"><h3 class="has-text-white"> Holder Position set!</h3></div>';
-  var position_set;
-
-  get_data(); //get the current slider position
+  //get_data(); //get the current slider position
 
   button.className += " is-loading";
   addNotifcation('notification_setting_position', notification_msg_setting_position);
+  var value = document.getElementById('sliderWithValue').value;
+  console.log(value);
+  webSocket.send(value);
 
   if(position_set == true){
     addNotifcation('notification_setting_position', notification_msg_position_set);
@@ -165,3 +173,5 @@ var slider = document.getElementById('sliderWithValue');
 xhr.open("GET", "/slider?value="+slider.value, true);
 xhr.send();
 }
+
+

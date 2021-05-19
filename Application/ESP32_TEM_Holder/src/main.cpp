@@ -18,12 +18,6 @@ DynamicJsonDocument Rx_Doc(1024);
 String Tx_Json;
 String Rx_Json;
 
-const char* Position = "POSITION";
-const char* Ack = "ACK";
-
-
-// Input Parameters to connect Frontend and Backend
-String sliderValue = "0";
 
 // Create AsyncWebServer object on port 80
 AsyncWebServer server(80);
@@ -58,7 +52,7 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
 
     delay(1000);
 
-    if(!strcmp(expression, Position)){
+    if(!strcmp(expression, "POSITION")){
 
       Serial.println("Got Position! Sending Ack");
       Tx_Doc["message_type"] = "ACK";
@@ -78,8 +72,10 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
       Serial.println(Tx_Json);
       ws.textAll(Tx_Json);
 
-    }else if(!strcmp(expression, Ack)){
+    }else if(!strcmp(expression, "ACK")){
 
+    }else if(!strcmp(expression, "STATUS")){
+      
     }
 
     Tx_Json.clear();

@@ -13,7 +13,14 @@ const char* password = "kayabanana";
 int LED_PIN = 2;
 
 // Initialize JSON element
-DynamicJsonDocument json(1024);
+DynamicJsonDocument Tx_Doc(1024);
+DynamicJsonDocument Rx_Doc(1024);
+String Tx_Json;
+String Rx_Json;
+
+const char* Position = "POSITION";
+const char* Ack = "ACK";
+
 
 // Input Parameters to connect Frontend and Backend
 String sliderValue = "0";
@@ -42,9 +49,48 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
   if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) {
     data[len] = 0;
     Serial.println((char*)data);
-    process_data();
+
+    Rx_Json = (char*) data;
+    deserializeJson(Rx_Doc, Rx_Json);
+
+    const char* expression = (const char*)Rx_Doc["message_type"];
+
+    Serial.print("expression = ");
+    Serial.println(expression);
+
+    if(strcmp(expression, Position)){
+
+      Serial.println("got postition!");
+      Tx_Doc["message_type"] = "POSITION";
+      Tx_Doc["data"] = Rx_Doc["data"];
+      serializeJson(Tx_Doc, Tx_Json);
+      //Serial.println(Tx_Json);
+      ws.textAll(Tx_Json);
+
+    }
+
     delay(1000);
-    ws.textAll("OK");
+    
+    if(strcmp(expression, Position)){
+
+      Serial.println("got postition!");
+      Tx_Doc["message_type"] = "POSITION";
+      Tx_Doc["data"] = Rx_Doc["data"];
+      serializeJson(Tx_Doc, Tx_Json);
+      //Serial.println(Tx_Json);
+      ws.textAll(Tx_Json);
+
+    }else if(strcmp(expression, Ack)){
+      Serial.println("got ack!");
+      Tx_Doc["message_type"] = "ACK";
+      Tx_Doc["data"] = "SET";
+      serializeJson(Tx_Doc, Tx_Json);
+      //Serial.println(Tx_Json);
+      ws.textAll(Tx_Json);
+    }
+
+    Tx_Json.clear();
+    
   }
 }
 
@@ -128,11 +174,6 @@ void setup(){
   server.on("/script.js", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send(SPIFFS, "/script.js", "text/javascript");
   });
-
-  // JSON elements
-  json["message_type"] = "data";
-  json["data"] = 100;
-  json["ack"] = "OK";
 
   // Start server
   server.begin();

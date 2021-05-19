@@ -2,7 +2,7 @@
 /** Global variables **/ 
 
 // Placeholder/Position where notifications are placed
-var notfiication_place = 'notification_setting_position';
+var notification_place = 'notification_setting_position';
 
 // Notifications to be sent 
 var notification_msg_setting_position = '<div class="notification is-warning" id="notification_msg_setting_position"> <h3> Setting Holder Position ... </h3><progress class="progress is-medium is-dark" max="100">45%</progress></div>';
@@ -11,7 +11,7 @@ var notification_id_setting_position = 'notification_msg_setting_position';
 var notification_msg_position_set = '<div class="notification is-success" id="notification_msg_position_set"><h3 class="has-text-white"> Holder Position set!</h3></div>';
 var notification_id_position_set = 'notification_msg_position_set';
 
-var notification_msg_ws_diconnect = '<div class="notification is-danger" id="notification_msg_ws_diconnect"><h3>Server got disconnected! Please refresh page...</h3></div>';
+var notification_msg_ws_diconnect = '<div class="notification is-danger" id="notification_msg_ws_diconnect"><h3>Server got disconnected! Please refresh the page...</h3></div>';
 var notification_id_ws_diconnect = 'notification_msg_ws_diconnect';
 
 var notification_msg_calibration = '<div class="notification is-warning" id="notification_msg_calibration"><h3>You have entered calibration mode!</h3> <h4>Be careful, you could damage the holder irreversibly</h4></div>';
@@ -108,14 +108,21 @@ function set_holder_position_btn(){
   button.className += " is-loading";
   addNotification(notification_msg_setting_position);
 
+  var Tx_Json = { "message_type" : "POSITION", 
+                  "data" : value};
+  
   console.log(value);
-  webSocket.send(value); // send slider value to backend
+  console.log(JSON.stringify(Tx_Json));
+
+  webSocket.send(JSON.stringify(Tx_Json)); // send slider value to backend
+
+  Tx_Json = undefined;
 
 }
 
 // adds notification to the status panel
 function addNotification(message) {
-  var div = document.getElementById(notfiication_place);
+  let div = document.getElementById(notification_place);
   div.innerHTML += message;
 }
 
@@ -128,9 +135,10 @@ function addNotification(message) {
 // }
 
 function removeNotification(msg_id){
-  var newdiv = document.getElementById(msg_id);
-  newdiv.style.opacity = '0';
-  newdiv.remove();
+  let newdiv = document.getElementById(msg_id);
+  if(newdiv != null){
+    newdiv.remove();
+  }
 }
 
 //** switch functionality */ 
@@ -139,13 +147,16 @@ function switch_Live_Mode(){
 var switch_Live_Mode = document.getElementById('switch_Live_Mode');
 var button_holder_set = document.getElementById('button_holder_set');
 
-switch_Live_Mode.oninput = function(){
   if(switch_Live_Mode.checked == true){
-    button_holder_set.style.visibility = "hidden";
+    addNotification(notification_msg_calibration);
+    document.body.style.backgroundColor = 'grey';
+
+    // TODO: send message to backend
   } else {
-    button_holder_set.style.visibility = "visible";
+    removeNotification(notification_id_calibration);
+    document.body.style.backgroundColor = 'white';
   }
-}
+
 }
 
 // change to Precision Mode
@@ -162,31 +173,68 @@ function switch_Precision_Mode(){
 }
 
 
-function message_handler(event){
+// Position Handler: Receives current position on all clients
+function position_handler(data){
+  var slider = document.getElementById("sliderWithValue");
+  slider.value = data;
+  slider_change();
+}
 
-  switch (msg_type) {
-    case 'data':
-      
+// Acknowledgement Handler: Checks if Position is set
+function ack_handler(data){
+
+  switch (data) {
+    case "SET":
+      removeNotification(notification_id_setting_position);
+      var button = document.getElementById('button_holder_set');
+      button.classList.remove("is-loading");
+
+      addNotification(notification_msg_position_set);
+      setTimeout(function(){
+        removeNotification(notification_id_position_set);
+        }, 3000);
       break;
-    case 'ack':
-
+    case "ERROR":
+      console.log("Something went WRONG");
+    default:
       break;
-    case 'error':
+  }
+}
 
+// Error Handler: Informs user about errors in the backend
+function error_handler(data){
+  switch (data) {
+    case "ERROR_1":
+      console.log("Error 1 received!");
+      break;
+    case "ERROR_2":
+      console.log("Error 2 received!");
       break;
     default:
       break;
   }
+}
 
-  if(event.data == "OK"){
-    removeNotification(notification_id_setting_position);
-    var button = document.getElementById('button_holder_set');
-    button.classList.remove("is-loading");
-    
+// When a new message from websocket is received they get sorted here
+function message_handler(event){
 
-    addNotification(notification_msg_position_set);
-    setTimeout(function(){
-      removeNotification(notification_id_position_set);
-      }, 2000);
+  var msg = event.data;
+  //var asdf = msg.toString(); 
+  console.log(msg);
+  const json = JSON.parse(msg);
+
+  switch (json.message_type) {
+    case 'POSITION':
+        position_handler(json.data);
+      break;
+    case 'ACK':
+        ack_handler(json.data);
+      break;
+    case 'STATUS':
+        error_handler(json.data);
+      break;
+    default:
+      break;
   }
+    
 }

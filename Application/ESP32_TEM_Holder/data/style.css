@@ -1,9 +1,9 @@
 
-#noti_pos_setting {
+#notification_msg_setting_position {
     transition: opacity 0.5s;
 }
 
-#noti_pos_set {
+#notification_msg_position_set {
   transition: opacity 0.5s;
 }
 

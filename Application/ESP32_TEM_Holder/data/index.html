@@ -17,6 +17,9 @@
     <!-- bulma extension javascript -->
     <script src="https://cdn.jsdelivr.net/npm/bulma-extensions@6.2.7/dist/js/bulma-extensions.min.js"></script>
 
+    <!-- jQuery javascript -->
+    <!-- <script src="https://code.jquery.com/jquery-3.5.0.js"></script> -->
+
     <!-- own javascript bits -->
     <script src="/script.js"></script>
     
@@ -28,16 +31,13 @@
       var webSocket = new WebSocket("ws://"+address+"/ws");
       
       webSocket.onmessage = function(event) {
-
         console.log(event.data);
         message_handler(event);
       }
       
       webSocket.onopen = function(event) {
         console.log("Connection opened!");
-        if(document.getElementById(notification_id_ws_diconnect) != null){
-          removeNotification(notification_id_ws_diconnect);
-        }
+        removeNotification(notification_id_ws_diconnect);
       }
 
       webSocket.onclose = function(event) {
@@ -162,12 +162,12 @@
               <div class="box">
                 <div class="content is-small">
                    <div class="field">
-                     <h2>Live View Mode (<span style="color: red">Beta-Feature:</span> use at your own risk)</h2>
-                     <input id="switch_Live_Mode" onclick="switch_Live_Mode()" type="checkbox" name="switchRoundedWarning" class="switch is-rounded is-black">
-                     <label for="switch_Live_Mode"> </label>
-                     <h2>Precision Mode (Step Size = 1, default = 10)</h2>
-                     <input id="switch_Precision_Mode" onclick="switch_Precision_Mode()" type="checkbox" name="switchRoundedWarning" class="switch is-rounded is-black">
-                     <label for="switch_Precision_Mode"> </label>
+                      <h2>Precision Mode (Step Size = 1, default = 10)</h2>
+                      <input id="switch_Precision_Mode" onclick="switch_Precision_Mode()" type="checkbox" name="switchRoundedWarning" class="switch is-rounded is-black">
+                      <label for="switch_Precision_Mode"> </label>
+                      <h2>Calibration Mode (<span style="color: red">Use with caution:</span> the holder could be damaged)</h2>
+                      <input id="switch_Live_Mode" onclick="switch_Live_Mode()" type="checkbox" name="switchRoundedWarning" class="switch is-rounded is-black">
+                      <label for="switch_Live_Mode"> </label>
                    </div>
                 </div>
               </div>

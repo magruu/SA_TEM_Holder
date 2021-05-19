@@ -5,9 +5,12 @@
 #include "SPIFFS.h"
 #include <ArduinoJson.h>
 
-// Replace with your network credentials
+// Network credentials
 const char* ssid = "MagruuFi";
 const char* password = "kayabanana";
+
+// const char* ssid = "ZMB-Y42F54-WIFI";
+// const char* password = "jumbo8+Cloud";
 
 // Led Pin
 int LED_PIN = 2;
@@ -17,7 +20,6 @@ DynamicJsonDocument Tx_Doc(1024);
 DynamicJsonDocument Rx_Doc(1024);
 String Tx_Json;
 String Rx_Json;
-
 
 // Create AsyncWebServer object on port 80
 AsyncWebServer server(80);

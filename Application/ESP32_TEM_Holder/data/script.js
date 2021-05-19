@@ -112,7 +112,7 @@ function set_holder_position_btn(){
                   "data" : value};
   
   console.log(value);
-  console.log(JSON.stringify(Tx_Json));
+  console.log("TX: " + JSON.stringify(Tx_Json));
 
   webSocket.send(JSON.stringify(Tx_Json)); // send slider value to backend
 
@@ -218,10 +218,9 @@ function error_handler(data){
 // When a new message from websocket is received they get sorted here
 function message_handler(event){
 
-  var msg = event.data;
-  //var asdf = msg.toString(); 
-  console.log(msg);
-  const json = JSON.parse(msg);
+  console.log("RX: " + event.data);
+
+  const json = JSON.parse(event.data);
 
   switch (json.message_type) {
     case 'POSITION':

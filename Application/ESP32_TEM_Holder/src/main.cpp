@@ -48,6 +48,7 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
   AwsFrameInfo *info = (AwsFrameInfo*)arg;
   if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) {
     data[len] = 0;
+    Serial.print("RX: ");
     Serial.println((char*)data);
 
     Rx_Json = (char*) data;
@@ -55,38 +56,30 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
 
     const char* expression = (const char*)Rx_Doc["message_type"];
 
-    Serial.print("expression = ");
-    Serial.println(expression);
-
-    if(strcmp(expression, Position)){
-
-      Serial.println("got postition!");
-      Tx_Doc["message_type"] = "POSITION";
-      Tx_Doc["data"] = Rx_Doc["data"];
-      serializeJson(Tx_Doc, Tx_Json);
-      //Serial.println(Tx_Json);
-      ws.textAll(Tx_Json);
-
-    }
-
     delay(1000);
-    
-    if(strcmp(expression, Position)){
 
-      Serial.println("got postition!");
-      Tx_Doc["message_type"] = "POSITION";
-      Tx_Doc["data"] = Rx_Doc["data"];
-      serializeJson(Tx_Doc, Tx_Json);
-      //Serial.println(Tx_Json);
-      ws.textAll(Tx_Json);
+    if(!strcmp(expression, Position)){
 
-    }else if(strcmp(expression, Ack)){
-      Serial.println("got ack!");
+      Serial.println("Got Position! Sending Ack");
       Tx_Doc["message_type"] = "ACK";
       Tx_Doc["data"] = "SET";
       serializeJson(Tx_Doc, Tx_Json);
-      //Serial.println(Tx_Json);
+      Serial.print("TX :");
+      Serial.println(Tx_Json);
       ws.textAll(Tx_Json);
+
+      Tx_Json.clear();
+      
+      Serial.println("Setting Position on all Clients");
+      Tx_Doc["message_type"] = "POSITION";
+      Tx_Doc["data"] = Rx_Doc["data"];
+      serializeJson(Tx_Doc, Tx_Json);
+      Serial.print("TX :");
+      Serial.println(Tx_Json);
+      ws.textAll(Tx_Json);
+
+    }else if(!strcmp(expression, Ack)){
+
     }
 
     Tx_Json.clear();
@@ -130,6 +123,8 @@ void setup(){
   unsigned int totalBytes = SPIFFS.totalBytes();
   unsigned int usedBytes = SPIFFS.usedBytes();
 
+
+  Serial.println();
   Serial.println("===== File system info =====");
 
   Serial.print("Total space:      ");
@@ -154,7 +149,9 @@ void setup(){
   }
 
   // Print ESP32 Local IP Address
+  Serial.println("Wifi Connected! Your IP:");
   Serial.println(WiFi.localIP());
+  Serial.println();
   
   // Initialize the WebSocket
   ws.onEvent(onEvent);

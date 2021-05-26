@@ -1,43 +1,65 @@
 
-#include "WiFi.h"
-#include "ESPAsyncWebServer.h"
-#include "AsyncTCP.h"
-#include "SPIFFS.h"
+#include <WiFi.h>
+#include <ESPAsyncWebServer.h>
+#include <AsyncTCP.h>
+#include <SPIFFS.h>
 #include <ArduinoJson.h>
 
-// Network credentials
+/*************************************************************************************************
+ * Network Credentials
+ * 
+ * ***********************************************************************************************/
+
 const char* ssid = "MagruuFi";
 const char* password = "kayabanana";
 
-// const char* ssid = "ZMB-Y42F54-WIFI";
+// const char* ssid = "ZMB-Y42F54-WIFI"; // ZMB Credentials
 // const char* password = "jumbo8+Cloud";
 
-// Led Pin
+/*************************************************************************************************
+ * User Global Variables
+ * 
+ * ***********************************************************************************************/
+
 int LED_PIN = 2;
 
-// Initialize JSON element
-DynamicJsonDocument Tx_Doc(1024);
-DynamicJsonDocument Rx_Doc(1024);
-String Tx_Json;
-String Rx_Json;
+int current_Holder_Position =  0;   // saves the current holder position
 
-// Create AsyncWebServer object on port 80
-AsyncWebServer server(80);
+int requested_Holder_Position = 0;  // saves the requested holder postion
 
-// Create WebSocketServer (usually on port 81)
-AsyncWebSocket ws("/ws");
+int Holder_State = 0;               // saves the state of the holder (Calibration, Live-View, Normal)
+
+/*************************************************************************************************
+ * Initialize JSON element
+ * 
+ * ***********************************************************************************************/
+
+DynamicJsonDocument Tx_Doc(1024);   //Library Variable for Json
+DynamicJsonDocument Rx_Doc(1024);   //Library Variable for Json
+String Tx_Json;                     //Json-ized String
+String Rx_Json;                     //Json-ized String
+
+
+/*************************************************************************************************
+ * Initialize Webserver & Websocket
+ * 
+ *    Asyncwebserver: multiple clients and async functionality
+ *    Websocket:      communication library between client and server  
+ * 
+ * ***********************************************************************************************/
+
+AsyncWebServer server(80); // Create AsyncWebServer object on port 80
+
+AsyncWebSocket ws("/ws"); // Create WebSocketServer (usually on port 81)
  
-// move stepper motor to the according position
-void process_data(){
-  if(digitalRead(LED_PIN) == LOW){
-    digitalWrite(LED_PIN, HIGH);
-  } else{
-    digitalWrite(LED_PIN, LOW);
-  }
-    
-}
 
-// Websocket functions
+/*************************************************************************************************
+ * Websocket Functions
+ * 
+ *    handleWebSocketMessage():   handles incomming messages from the Websocket/Client  
+ *    onEvent():                  Gets called when an event occurs on the WebSocket
+ * 
+ * ***********************************************************************************************/
 
 // Handles the received message
 void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
@@ -89,20 +111,44 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
 void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type,
  void *arg, uint8_t *data, size_t len) {
   switch (type) {
-    case WS_EVT_CONNECT:
+    case WS_EVT_CONNECT:    // New client connected 
       Serial.printf("WebSocket client #%u connected from %s\n", client->id(), client->remoteIP().toString().c_str());
       break;
-    case WS_EVT_DISCONNECT:
+    case WS_EVT_DISCONNECT: // Client got disconnected
       Serial.printf("WebSocket client #%u disconnected\n", client->id());
       break;
-    case WS_EVT_DATA:
+    case WS_EVT_DATA:       // Data was received
       handleWebSocketMessage(arg, data, len);
       break;
-    case WS_EVT_PONG:
-    case WS_EVT_ERROR:
+    case WS_EVT_PONG:       // Pong request
+    case WS_EVT_ERROR:      // Error 
       break;
   }
 }
+
+/*************************************************************************************************
+ * User Functions
+ *    
+ *    process_data():     gets called when a new stepper position is requested
+ * 
+ * ***********************************************************************************************/
+
+// move stepper motor to the according position
+void process_data(){
+  if(digitalRead(LED_PIN) == LOW){
+    digitalWrite(LED_PIN, HIGH);
+  } else{
+    digitalWrite(LED_PIN, LOW);
+  }
+    
+}
+
+/*************************************************************************************************
+ * Arduino Setup Function
+ * 
+ *    Used as initialization function for the used libraries and functionalities
+ * 
+ * ***********************************************************************************************/
 
 void setup(){
   // Serial port for debugging purposes
@@ -120,7 +166,6 @@ void setup(){
   // Display used space of SPIFFS
   unsigned int totalBytes = SPIFFS.totalBytes();
   unsigned int usedBytes = SPIFFS.usedBytes();
-
 
   Serial.println();
   Serial.println("===== File system info =====");
@@ -175,6 +220,13 @@ void setup(){
 
 }
  
+/*************************************************************************************************
+ * Arduino Loop Function
+ * 
+ *    Infinite loop for controlling the holder
+ * 
+ * ***********************************************************************************************/
+
 void loop(){
   ws.cleanupClients();
 }

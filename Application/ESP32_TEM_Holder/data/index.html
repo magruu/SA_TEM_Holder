@@ -32,7 +32,7 @@
       
       webSocket.onmessage = function(event) {
         //console.log(event.data);
-        message_handler(event);
+        get_message_handler(event);
       }
       
       webSocket.onopen = function(event) {

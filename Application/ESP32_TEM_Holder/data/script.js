@@ -205,7 +205,7 @@ function switch_Calibration_Mode(){
  *    get_message_handler():      sorting function for incomming messages from the Websocket
  *    get_position_handler():     receives current holder position and displays it on all clients
  *    get_ack_handler():          wait for an ack from the server/holder
- *    get_error_handler():        receives messages from the server/holder and acts accordingly
+ *    get_status_handler():        receives messages from the server/holder and acts accordingly
  * 
  * ***********************************************************************************************/
 
@@ -224,7 +224,7 @@ function get_message_handler(event){
         get_ack_handler(json.data);
       break;
     case 'STATUS':
-        get_error_handler(json.data);
+        get_status_handler(json.data);
       break;
     default:
       break;
@@ -260,7 +260,7 @@ function get_ack_handler(data){
   }
 }
 
-// Error Handler: Informs user about errors in the backend
+// Status Handler: Informs user about errors in the backend
 function get_error_handler(data){
   switch (data) {
     case "ERROR_1":

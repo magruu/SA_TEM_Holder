@@ -28,6 +28,7 @@ var notification_id_calibration = 'notification_msg_calibration';
  *    set_probe_pos():          sets the check boxes according to slider position
  *    set_arrow_pos():          moves the positioning arrow to the right place
  *    slider_plus_minus_btn():  changes slider position by clicking on plus/minus buttons
+ * 
  * ***********************************************************************************************/
 
 // sets the slider position
@@ -187,8 +188,15 @@ function switch_Calibration_Mode(){
   var button_holder_set = document.getElementById('button_holder_set');
   
     if(switch_Calibration_Mode.checked == true){
-      addNotification(notification_msg_calibration);
-      document.body.style.backgroundColor = 'grey';
+
+      if (confirm("Your about to go to Calibration Mode! Are you sure?")) {
+        addNotification(notification_msg_calibration);
+        document.body.style.backgroundColor = 'grey';
+      } else{
+        removeNotification(notification_id_calibration);
+        document.body.style.backgroundColor = 'white';
+        switch_Calibration_Mode.checked = false;
+      }
   
       // TODO: send message to backend
     } else {

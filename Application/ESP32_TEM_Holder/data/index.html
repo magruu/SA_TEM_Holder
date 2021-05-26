@@ -104,7 +104,7 @@
 
             <!-- Slider -->
                 <div class="column is-11">
-                  <input id="sliderWithValue" oninput="set_slider_pos()" class="slider has-output is-fullwidth" min="0" max="400" value="200" step="10" type="range">
+                  <input id="sliderWithValue" oninput="set_slider_pos()" class="slider has-output is-fullwidth" min="0" max="400" value="200" step="1" type="range">
                   <output for="sliderWithValue" id="value">200</output>
                 </div>
 
@@ -163,7 +163,7 @@
                 <div class="content is-small">
                    <div class="field">
                       <h2>Precision Mode (Step Size = 1, default = 10)</h2>
-                      <input id="switch_Precision_Mode" onclick="switch_Precision_Mode()" type="checkbox" name="switchRoundedWarning" class="switch is-rounded is-black">
+                      <input id="switch_Precision_Mode" onclick="switch_Precision_Mode()" type="checkbox" checked="checked" name="switchRoundedWarning" class="switch is-rounded is-black">
                       <label for="switch_Precision_Mode"> </label>
                       <h2>Calibration Mode (<span style="color: red">Use with caution:</span> the holder could be damaged)</h2>
                       <input id="switch_Calibration_Mode" onclick="switch_Calibration_Mode()" type="checkbox" name="switchRoundedWarning" class="switch is-rounded is-black">

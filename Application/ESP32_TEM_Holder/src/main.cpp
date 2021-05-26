@@ -15,8 +15,11 @@
  * 
  * ***********************************************************************************************/
 
-const char* ssid = "MagruuFi";
-const char* password = "kayabanana";
+const char* ssid = "NETGEAR";
+const char* password = "mhsi12jaia";
+
+// const char* ssid = "MagruuFi";
+// const char* password = "kayabanana";
 
 // const char* ssid = "ZMB-Y42F54-WIFI"; // ZMB Credentials
 // const char* password = "jumbo8+Cloud";
@@ -133,6 +136,11 @@ void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType 
   switch (type) {
     case WS_EVT_CONNECT:    // New client connected 
       Serial.printf("WebSocket client #%u connected from %s\n", client->id(), client->remoteIP().toString().c_str());
+      Tx_Doc["message_type"] = "POSITION";
+      Tx_Doc["data"] = current_Holder_Position;
+      serializeJson(Tx_Doc, Tx_Json);
+      ws.text(client->id(), Tx_Json);
+      Tx_Json.clear();
       break;
     case WS_EVT_DISCONNECT: // Client got disconnected
       Serial.printf("WebSocket client #%u disconnected\n", client->id());
@@ -231,7 +239,7 @@ void setup(){
   }
 
   // Print ESP32 Local IP Address
-  Serial.println("Wifi Connected! Your IP:");
+  Serial.print("Wifi Connected with IP: ");
   Serial.println(WiFi.localIP());
   Serial.println();
   

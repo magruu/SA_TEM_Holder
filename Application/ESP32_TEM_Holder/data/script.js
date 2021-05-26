@@ -1,5 +1,8 @@
 
-/** Global variables **/ 
+/*************************************************************************************************
+ * Global Variables
+ * 
+ * ***********************************************************************************************/
 
 // Placeholder/Position where notifications are placed
 var notification_place = 'notification_setting_position';
@@ -17,10 +20,18 @@ var notification_id_ws_diconnect = 'notification_msg_ws_diconnect';
 var notification_msg_calibration = '<div class="notification is-warning" id="notification_msg_calibration"><h3>You have entered calibration mode!</h3> <h4>Be careful, you could damage the holder irreversibly</h4></div>';
 var notification_id_calibration = 'notification_msg_calibration';
 
-/** Javascript Functions **/
 
-//slider functionality
-function slider_change(){
+/*************************************************************************************************
+ * Slider Functionality
+ * 
+ *    set_slider_pos():         changes slider position and outputs in on the frontend
+ *    set_probe_pos():          sets the check boxes according to slider position
+ *    set_arrow_pos():          moves the positioning arrow to the right place
+ *    slider_plus_minus_btn():  changes slider position by clicking on plus/minus buttons
+ * ***********************************************************************************************/
+
+// sets the slider position
+function set_slider_pos(){
 
   var slider = document.getElementById("sliderWithValue");
   var output = document.getElementById('value');
@@ -42,7 +53,7 @@ function slider_change(){
   } else {
     probe_pos_2.checked = true;
   }
-  arrow_position();
+  set_arrow_pos();
 
 }
 
@@ -70,12 +81,11 @@ function set_probe_pos(id){
   }
   slider.value = position;
   output.innerHTML = position;
-  arrow_position();
+  set_arrow_pos();
 }
 
-
 // moves the arrow to the correct position
-function arrow_position(){
+function set_arrow_pos(){
 var slider = document.getElementById("sliderWithValue");
 var pos_2 = (slider.max - slider.min)/2;
 var pos_arrow = document.getElementById("arrow_position");
@@ -97,28 +107,17 @@ function slider_plus_minus_btn(plus_minus) {
       break;
   }
 
-  slider_change();
+  set_slider_pos();
 }
 
-//Sets holder position, sends toast/notification and sends desired holder position to backend
-function set_holder_position_btn(){
-  var button = document.getElementById('button_holder_set');
-  var value = document.getElementById('sliderWithValue').value; // slider value
 
-  button.className += " is-loading";
-  addNotification(notification_msg_setting_position);
-
-  var Tx_Json = { "message_type" : "POSITION", 
-                  "data" : value};
-  
-  console.log(value);
-  console.log("TX: " + JSON.stringify(Tx_Json));
-
-  webSocket.send(JSON.stringify(Tx_Json)); // send slider value to backend
-
-  Tx_Json = undefined;
-
-}
+/*************************************************************************************************
+ * Notification Functions
+ * 
+ *    addNotification():      adds the requested notification to the status panel
+ *    removeNotification():   removes the requested notification from the status panel
+ * 
+ * ***********************************************************************************************/
 
 // adds notification to the status panel
 function addNotification(message) {
@@ -134,6 +133,7 @@ function addNotification(message) {
 //   document.getElementById("notification").setAttribute("id", msg_id);
 // }
 
+// removes notification from the status panel
 function removeNotification(msg_id){
   let newdiv = document.getElementById(msg_id);
   if(newdiv != null){
@@ -141,7 +141,16 @@ function removeNotification(msg_id){
   }
 }
 
-//** switch functionality */ 
+
+/*************************************************************************************************
+ * Settings Tab Functionality
+ * 
+ *    switch_Live_Mode():         Switches between Normal Mode and Live View Mode
+ *    switch_Precision_Mode():    Switches between steps of 1 and 10
+ *    switch_Calibration_Mode():  Switches between Calibration Mode and Normal Mode 
+ * 
+ * ***********************************************************************************************/
+
 // change to Live View Mode
 function switch_Live_Mode(){
 var switch_Live_Mode = document.getElementById('switch_Live_Mode');
@@ -172,16 +181,66 @@ function switch_Precision_Mode(){
   }
 }
 
+// change to Calibration Mode
+function switch_Calibration_Mode(){
+  var switch_Calibration_Mode = document.getElementById('switch_Calibration_Mode');
+  var button_holder_set = document.getElementById('button_holder_set');
+  
+    if(switch_Calibration_Mode.checked == true){
+      addNotification(notification_msg_calibration);
+      document.body.style.backgroundColor = 'grey';
+  
+      // TODO: send message to backend
+    } else {
+      removeNotification(notification_id_calibration);
+      document.body.style.backgroundColor = 'white';
+    }
+}
+
+
+/*************************************************************************************************
+ * RX Message Handlers
+ *    All Messages are sent in the standardized JSON format!
+ * 
+ *    get_message_handler():      sorting function for incomming messages from the Websocket
+ *    get_position_handler():     receives current holder position and displays it on all clients
+ *    get_ack_handler():          wait for an ack from the server/holder
+ *    get_error_handler():        receives messages from the server/holder and acts accordingly
+ * 
+ * ***********************************************************************************************/
+
+// When a new message from websocket is received they get sorted here
+function get_message_handler(event){
+
+  console.log("RX: " + event.data);
+
+  const json = JSON.parse(event.data);
+
+  switch (json.message_type) {
+    case 'POSITION':
+        get_position_handler(json.data);
+      break;
+    case 'ACK':
+        get_ack_handler(json.data);
+      break;
+    case 'STATUS':
+        get_error_handler(json.data);
+      break;
+    default:
+      break;
+  }
+    
+}
 
 // Position Handler: Receives current position on all clients
-function position_handler(data){
+function get_position_handler(data){
   var slider = document.getElementById("sliderWithValue");
   slider.value = data;
-  slider_change();
+  set_slider_pos();
 }
 
 // Acknowledgement Handler: Checks if Position is set
-function ack_handler(data){
+function get_ack_handler(data){
 
   switch (data) {
     case "SET":
@@ -202,7 +261,7 @@ function ack_handler(data){
 }
 
 // Error Handler: Informs user about errors in the backend
-function error_handler(data){
+function get_error_handler(data){
   switch (data) {
     case "ERROR_1":
       console.log("Error 1 received!");
@@ -215,25 +274,30 @@ function error_handler(data){
   }
 }
 
-// When a new message from websocket is received they get sorted here
-function message_handler(event){
 
-  console.log("RX: " + event.data);
+/*************************************************************************************************
+ * Tx Message Handlers
+ * 
+ *    set_holder_pos():         sets the holder position and sends the position to backend on button press
+ * 
+ * ***********************************************************************************************/
 
-  const json = JSON.parse(event.data);
+//Sets holder position, sends toast/notification and sends desired holder position to backend
+function set_holder_pos(){
+  var button = document.getElementById('button_holder_set');
+  var value = document.getElementById('sliderWithValue').value; // slider value
 
-  switch (json.message_type) {
-    case 'POSITION':
-        position_handler(json.data);
-      break;
-    case 'ACK':
-        ack_handler(json.data);
-      break;
-    case 'STATUS':
-        error_handler(json.data);
-      break;
-    default:
-      break;
-  }
-    
+  button.className += " is-loading";
+  addNotification(notification_msg_setting_position);
+
+  var Tx_Json = { "message_type" : "POSITION", 
+                  "data" : value};
+  
+  console.log(value);
+  console.log("TX: " + JSON.stringify(Tx_Json)); // prints json string to console
+
+  webSocket.send(JSON.stringify(Tx_Json)); // send slider value to backend
+
+  Tx_Json = undefined;
+
 }

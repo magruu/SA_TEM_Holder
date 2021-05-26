@@ -104,7 +104,7 @@
 
             <!-- Slider -->
                 <div class="column is-11">
-                  <input id="sliderWithValue" oninput="slider_change()" class="slider has-output is-fullwidth" min="0" max="400" value="200" step="10" type="range">
+                  <input id="sliderWithValue" oninput="set_slider_pos()" class="slider has-output is-fullwidth" min="0" max="400" value="200" step="10" type="range">
                   <output for="sliderWithValue" id="value">200</output>
                 </div>
 
@@ -132,7 +132,7 @@
                 <div class="container ">
                   <div class="columns">
                     <div class="column ">
-                        <button onclick="set_holder_position_btn()" class="button is-black is-fullwidth" id="button_holder_set" > Set Position</button>
+                        <button onclick="set_holder_pos()" class="button is-black is-fullwidth" id="button_holder_set" > Set Position</button>
                     </div>
                   </div>
                 </div>
@@ -166,8 +166,8 @@
                       <input id="switch_Precision_Mode" onclick="switch_Precision_Mode()" type="checkbox" name="switchRoundedWarning" class="switch is-rounded is-black">
                       <label for="switch_Precision_Mode"> </label>
                       <h2>Calibration Mode (<span style="color: red">Use with caution:</span> the holder could be damaged)</h2>
-                      <input id="switch_Live_Mode" onclick="switch_Live_Mode()" type="checkbox" name="switchRoundedWarning" class="switch is-rounded is-black">
-                      <label for="switch_Live_Mode"> </label>
+                      <input id="switch_Calibration_Mode" onclick="switch_Calibration_Mode()" type="checkbox" name="switchRoundedWarning" class="switch is-rounded is-black">
+                      <label for="switch_Calibration_Mode"> </label>
                    </div>
                 </div>
               </div>

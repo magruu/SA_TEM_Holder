@@ -4,6 +4,11 @@
 #include <AsyncTCP.h>
 #include <SPIFFS.h>
 #include <ArduinoJson.h>
+#include <EEPROM.h>
+
+
+#include "Eeprom_Lib.h"
+
 
 /*************************************************************************************************
  * Network Credentials
@@ -21,13 +26,23 @@ const char* password = "kayabanana";
  * 
  * ***********************************************************************************************/
 
+#define EEPROM_SIZE 7              // define the number of bytes you want to access
+
+
+
 int LED_PIN = 2;
 
-int current_Holder_Position =  0;   // saves the current holder position
+uint16_t current_Holder_Position;   // saves the current holder position
 
 int requested_Holder_Position = 0;  // saves the requested holder postion
 
+int eeprom_pos = 0;
+
 int Holder_State = 0;               // saves the state of the holder (Calibration, Live-View, Normal)
+
+Eeprom_Holder_Pos Holder_Pos;
+
+
 
 /*************************************************************************************************
  * Initialize JSON element
@@ -78,6 +93,10 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
     delay(1000);
 
     if(!strcmp(expression, "POSITION")){
+
+      current_Holder_Position = Rx_Doc["data"];
+
+      Holder_Pos.set_pos(current_Holder_Position, Holder_Pos.get_eeprom_pos());
 
       Serial.println("Got Position! Sending Ack");
       Tx_Doc["message_type"] = "ACK";
@@ -144,6 +163,8 @@ void process_data(){
     
 }
 
+
+
 /*************************************************************************************************
  * Arduino Setup Function
  * 
@@ -183,6 +204,23 @@ void setup(){
   Serial.print(totalBytes - usedBytes);
   Serial.println("bytes");
 
+  Serial.println();
+
+  // Initialize EEPROM with predefined size
+  Serial.println("===== EEPROM Init =====");
+  Serial.print("Eeprom Size: ");
+  Serial.print(EEPROM_SIZE);
+  Serial.println(" Bytes");
+  if(!EEPROM.begin(EEPROM_SIZE)){
+    Serial.println("An Error has occurred while mounting EEPROM");
+    return;
+  }
+
+  current_Holder_Position = Holder_Pos.get_pos();
+  Serial.print("Recovered Holder Position: ");
+  Serial.println(Holder_Pos.get_pos());
+  Serial.print("Holder EEPROM Position: ");
+  Serial.println(Holder_Pos.get_eeprom_pos());
   Serial.println();
 
   // Connect to Wi-Fi

@@ -77,8 +77,10 @@ String Rx_Json;                     //Json-ized String
 // #define STALL_VALUE_RIGHT     40
 
 // OK for 12V
-#define STALL_VALUE_LEFT      33
-#define STALL_VALUE_RIGHT     35
+#define STALL_VALUE_LEFT      37
+#define STALL_VALUE_RIGHT     37
+
+#define STALL_VALUE_STARTUP   0
 
 #define SERIAL_PORT Serial2 // TMC2208/TMC2224 HardwareSerial port
 #define DRIVER_ADDRESS 0b00 // TMC2209 Driver address according to MS1 and MS2
@@ -172,10 +174,12 @@ void calibratePosition(){
   timerAlarmDisable(timer1);
   Serial.println();
   Serial.println("Calibration started...");
-  driver.SGTHRS(STALL_VALUE_LEFT);
+  driver.SGTHRS(STALL_VALUE_STARTUP);
   driver.shaft(left);
   delay(1000);
   timerAlarmEnable(timer1);
+  delay(2);
+  driver.SGTHRS(STALL_VALUE_LEFT);
   
    uint32_t last_time=millis();
   while(true){
@@ -204,11 +208,13 @@ void calibratePosition(){
   }
 
   currentPosition = minPosition; // sets the counted currentPosition to 0
-  
-  driver.SGTHRS(STALL_VALUE_RIGHT);
+
+  driver.SGTHRS(STALL_VALUE_STARTUP);
   driver.shaft(right);
   delay(1000);
   timerAlarmEnable(timer1);
+  delay(2);
+  driver.SGTHRS(STALL_VALUE_RIGHT);
   
   last_time = millis();
   while(true){

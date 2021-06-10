@@ -30,14 +30,18 @@ const char* password = "kayabanana";
  * 
  * ***********************************************************************************************/
 
-#define EEPROM_SIZE 7              // define the number of bytes you want to access
+#define EEPROM_SIZE      7  // define the number of bytes you want to access
 
-#define EN_PIN           25// Enable
-#define DIR_PIN          4 // Direction
+#define EN_PIN           25 // Enable
+#define DIR_PIN          4  // Direction
 #define STEP_PIN         14 // Step
 #define HW_RX            15 // TMC2208/TMC2224 HardwareSerial receive pin
 #define HW_TX            27 // TMC2208/TMC2224 HardwareSerial transmit pin
- 
+
+#define POSITION_FLAG_SET     1
+#define POSITION_FLAG_UNSET   0
+
+bool positionFlag = POSITION_FLAG_UNSET;
 
 // Timer for the periodic interrupt
 hw_timer_t * timer1 = NULL;
@@ -53,6 +57,7 @@ enum Direction {left = 1, right = 0};
 enum State {normal, calibration};
 
 State state = calibration;
+
 Eeprom_Holder_Pos Holder_Pos;
 
 
@@ -79,7 +84,7 @@ String Rx_Json;                     //Json-ized String
 // #define STALL_VALUE_RIGHT     40
 
 // OK for 12V
-#define STALL_VALUE_LEFT      37
+#define STALL_VALUE_LEFT      33
 #define STALL_VALUE_RIGHT     35
 
 #define SERIAL_PORT Serial2 // TMC2208/TMC2224 HardwareSerial port
@@ -90,6 +95,13 @@ String Rx_Json;                     //Json-ized String
 // Motor Paramters
 #define FULL_STEPS_ROTATION 200 // Number of Full Steps for one rotation
 #define MICROSTEPS_RESOLUTION 16 // Makes 1 Full Step with the defined number of microsteps
+
+/*************************************************************************************************
+ * Holder Parameters
+ * 
+ * ***********************************************************************************************/
+
+#define MAX_HOLDER_VALUE        400.0
 
 /*************************************************************************************************
  * Initialize Stepper Motor Driver
@@ -115,25 +127,20 @@ AsyncWebSocket ws("/ws"); // Create WebSocketServer (usually on port 81)
 /*************************************************************************************************
  * User Functions
  *    
- *    process_data():     gets called when a new stepper position is requested
+ *    controlPosition():  this function is called in the periodic timer ISR, it gets called to see 
+ *                        if position is set or not
+ *    calibratePosition(): calibrates the holder automaticly and aborts it if something goes wrong.
+ *                         Is done on startup, but can be called by user
+ *    setPosition():      converts the desiredPosition from values of 0 to MAX_HOLDER_VALUE (on the GUI) to values of the internal map
  *    
  * ***********************************************************************************************/
-
-// move stepper motor to the according position
-// void process_data(){
-//   if(digitalRead(LED_PIN) == LOW){
-//     digitalWrite(LED_PIN, HIGH);
-//   } else{
-//     digitalWrite(LED_PIN, LOW);
-//   }
-    
-// }
 
 void controlPosition(){
   digitalWrite(STEP_PIN, !digitalRead(STEP_PIN));
 
   if(currentPosition == desiredPosition && state != calibration){
     timerAlarmDisable(timer1);
+    positionFlag = POSITION_FLAG_SET;
     Serial.print("My current position = ");
     Serial.println(currentPosition);
   }
@@ -152,49 +159,9 @@ void controlPosition(){
   }
 }
 
-void calibratePosition(){
-
-  timerAlarmDisable(timer1);
-  driver.SGTHRS(STALL_VALUE_LEFT);
-  delay(2000);
-  timerAlarmEnable(timer1);
-  driver.shaft(left);
-
-  while(true){
-    if(driver.diag()){
-      timerAlarmDisable(timer1);
-      break;
-    }
-  }
-  currentPosition = minPosition;
-  
-  driver.SGTHRS(STALL_VALUE_RIGHT);
-  delay(2000);
-  driver.shaft(right);
-  timerAlarmEnable(timer1);
-  
-  while(true){
-    if(driver.diag()){
-      timerAlarmDisable(timer1);
-      break;
-    }
-  }
-  maxPosition = currentPosition+1;
-
-  state = normal;
-
-  Serial.println("Calibration ended!");
-  Serial.print("Min Position = ");
-  Serial.println(minPosition);
-
-  Serial.print("Max Position = ");
-  Serial.println(maxPosition);
-
-}
-
 void setPosition(uint32_t position){
 
-  desiredPosition = position/400.0 * maxPosition;
+  desiredPosition = position/MAX_HOLDER_VALUE * maxPosition;
   if (currentPosition < desiredPosition){
     driver.SGTHRS(STALL_VALUE_RIGHT);
     driver.shaft(right);
@@ -205,11 +172,74 @@ void setPosition(uint32_t position){
   timerAlarmEnable(timer1);
 }
 
+void calibratePosition(){
+
+  timerAlarmDisable(timer1);
+  Serial.println();
+  Serial.println("Calibration started...");
+  driver.SGTHRS(STALL_VALUE_LEFT);
+  driver.shaft(left);
+  delay(1000);
+  timerAlarmEnable(timer1);
+  
+  while(true){
+    static uint32_t last_time=0;
+    uint32_t ms = millis();
+    // if no Diag Signal after 5s something went wrong
+    if((ms-last_time) > 5000) { //run every 6s
+      last_time = ms;
+      // TODO: add notification
+      Serial.println("Something went wrong with the calibration, repower holder!");
+      abort;
+    }
+
+    if(driver.diag()){
+      timerAlarmDisable(timer1);
+      break;
+    }
+  }
+
+  currentPosition = minPosition; // sets the counted currentPosition to 0
+  
+  driver.SGTHRS(STALL_VALUE_RIGHT);
+  driver.shaft(right);
+  delay(1000);
+  timerAlarmEnable(timer1);
+  
+  while(true){
+    static uint32_t last_time=0;
+    uint32_t ms = millis();
+    // if no Diag Signal after 5s something went wrong
+    if((ms-last_time) > 5000) { //run every 6s
+      last_time = ms;
+      // TODO: add notification
+      Serial.println("Something went wrong with the calibration, repower holder!");
+      abort;
+    }
+
+    if(driver.diag()){
+      timerAlarmDisable(timer1);
+      break;
+    }
+  }
+
+  maxPosition = currentPosition+1; // upon wall detection, set the position to the maxPosition
+
+  state = normal; // change state to normal operation state
+
+  Serial.println("Calibration ended successfully!");
+  Serial.print("Min Position = ");
+  Serial.println(minPosition);
+
+  Serial.print("Max Position = ");
+  Serial.println(maxPosition);
+
+}
+
 // Callback function when timer elapsed
 void IRAM_ATTR onTimer() {
 
   controlPosition();
-  // Serial.println("Hello from ISR!");
 } 
 
 
@@ -235,15 +265,26 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
 
     const char* expression = (const char*)Rx_Doc["message_type"];
 
-    delay(1000);
-
-    if(!strcmp(expression, "POSITION")){
-
-      desiredPosition = (uint32_t)Rx_Doc["data"];
+    if(!strcmp(expression, "POSITION")){ 
 
       //Holder_Pos.set_pos(currentPosition, Holder_Pos.get_eeprom_pos());
 
-      setPosition(desiredPosition);
+      setPosition((uint32_t)Rx_Doc["data"]);
+
+      while(positionFlag != POSITION_FLAG_SET){ // Wait for holder to reach desiredPosition
+        static uint32_t last_time=0;
+        uint32_t ms = millis();
+        // if position is not set after 5s something went wrong
+        if((ms-last_time) > 5000) { //run every 6s
+          last_time = ms;
+          // TODO: add notification
+          Serial.println("Something went wrong while setting the position, repower holder!");
+          abort;
+        }
+      }  
+
+      positionFlag = POSITION_FLAG_UNSET;   // Unset the positonFlag variable
+
 
       Serial.println("Got Position! Sending Ack");
       Tx_Doc["message_type"] = "ACK";
@@ -372,7 +413,6 @@ void setup(){
   //timerAlarmEnable(timer1);    //Enable timer        
   sei();//allow interrupts
 
-  Serial.println("Entering Calibration ...");
   calibratePosition();
 
   // Initialize EEPROM with predefined size
@@ -438,8 +478,8 @@ void setup(){
 void loop(){
   ws.cleanupClients();
 
-  if(driver.diag()){
-    state = calibration;
-    calibratePosition();
-  }
+  // if(driver.diag()){
+  //   state = calibration;
+  //   calibratePosition();
+  // }
 }

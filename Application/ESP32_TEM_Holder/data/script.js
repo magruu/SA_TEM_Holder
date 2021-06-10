@@ -14,6 +14,9 @@ var notification_id_setting_position = 'notification_msg_setting_position';
 var notification_msg_position_set = '<div class="notification is-success" id="notification_msg_position_set"><h3 class="has-text-white"> Holder Position set!</h3></div>';
 var notification_id_position_set = 'notification_msg_position_set';
 
+var notification_msg_position_error = '<div class="notification is-danger" id="notification_msg_position_error"><h3>Something went wrong while setting position!</h3><h3>Holder Reboots! Refresh page afterwards...</h3></div>';
+var notification_id_position_error = 'notification_msg_position_error';
+
 var notification_msg_ws_diconnect = '<div class="notification is-danger" id="notification_msg_ws_diconnect"><h3>Server got disconnected! Please refresh the page...</h3></div>';
 var notification_id_ws_diconnect = 'notification_msg_ws_diconnect';
 
@@ -22,6 +25,9 @@ var notification_id_calibration = 'notification_msg_calibration';
 
 var notification_msg_calibration_set = '<div class="notification is-success" id="notification_msg_calibration_set"><h3 class="has-text-white">Holder calibrated successfully!</h3> <h4>It is fully operational agian ...</h4></div>';
 var notification_id_calibration_set = 'notification_msg_calibration_set';
+
+var notification_msg_calibration_error = '<div class="notification is-danger" id="notification_msg_calibration_error"><h3>Something went wrong while calibrating!</h3><h3>Holder Reboots! Refresh page afterwards...</h3></div>';
+var notification_id_calibration_error = 'notification_msg_calibration_error';
 
 // variable to see if holder is successfully calibrated
 var calibrationFlag = 0;
@@ -296,8 +302,13 @@ function get_status_handler(data){
       calibrationFlag = 1;
       calibrated();
       break;
-    case "ERROR_2":
-      console.log("Error 2 received!");
+    case "position error":
+      console.log("Position Error received!");
+      addNotification(notification_msg_position_error);
+      break;
+    case "calibration error":
+      console.log("Calibration Error received!");
+      addNotification(notification_msg_calibration_error);
       break;
     default:
       break;

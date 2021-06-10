@@ -193,7 +193,14 @@ void calibratePosition(){
     // if no Diag Signal after 5s something went wrong
     if((ms-last_time) > 15000) { //run every 10s
       last_time = ms;
-      // TODO: add notification
+
+      Tx_Doc["message_type"] = "STATUS";
+      Tx_Doc["data"] = "calibration error";
+      serializeJson(Tx_Doc, Tx_Json);
+      Serial.print("TX :");
+      Serial.println(Tx_Json);
+      ws.textAll(Tx_Json);
+      Tx_Json.clear();
       Serial.println("Something went wrong with the calibration, holder reboots!");
       delay(5000);
       ESP.restart();
@@ -219,7 +226,14 @@ void calibratePosition(){
     // if no Diag Signal after 5s something went wrong
     if((ms-last_time) > 15000) { //run every 15s
       last_time = ms;
-      // TODO: add notification
+      
+      Tx_Doc["message_type"] = "STATUS";
+      Tx_Doc["data"] = "calibration error";
+      serializeJson(Tx_Doc, Tx_Json);
+      Serial.print("TX :");
+      Serial.println(Tx_Json);
+      ws.textAll(Tx_Json);
+      Tx_Json.clear();
       Serial.println("Something went wrong with the calibration, holder reboots!");
       delay(5000);
       ESP.restart();
@@ -485,7 +499,14 @@ void loop(){
           // if position is not set after 5s something went wrong
           if((ms-last_time) > 15000) { //run every 10s
             last_time = ms;
-            // TODO: add notification
+            
+            Tx_Doc["message_type"] = "STATUS";
+            Tx_Doc["data"] = "calibration error";
+            serializeJson(Tx_Doc, Tx_Json);
+            Serial.print("TX :");
+            Serial.println(Tx_Json);
+            ws.textAll(Tx_Json);
+            Tx_Json.clear();
             Serial.println("Something went wrong while calibrating, holder reboots!");
             delay(5000);
             ESP.restart();
@@ -500,9 +521,7 @@ void loop(){
         ws.textAll(Tx_Json);
 
         Tx_Json.clear();
-  }
-
-  if(state == setting){
+  }else if(state == setting){
       setPosition(rawDesiredPosition);
 
       static uint32_t last_time=millis();
@@ -510,12 +529,19 @@ void loop(){
         
         uint32_t ms = millis();
         // if position is not set after 5s something went wrong
-        if((ms-last_time) > 15000) { //run every 10s
+        if((ms-last_time) > 15000) { //run every 15s
           last_time = ms;
-          // TODO: add notification
+
+          Tx_Doc["message_type"] = "STATUS";
+          Tx_Doc["data"] = "positioning error";
+          serializeJson(Tx_Doc, Tx_Json);
+          Serial.print("TX :");
+          Serial.println(Tx_Json);
+          ws.textAll(Tx_Json);
+          Tx_Json.clear();
           Serial.println("Something went wrong while setting the position, holder reboots!");
           delay(5000);
-          // ESP.restart();
+          ESP.restart();
         }
       }  
 
@@ -529,7 +555,6 @@ void loop(){
       Serial.print("TX :");
       Serial.println(Tx_Json);
       ws.textAll(Tx_Json);
-
       Tx_Json.clear();
   }
 

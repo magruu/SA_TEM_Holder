@@ -38,10 +38,11 @@ const char* password = "kayabanana";
 #define HW_RX            15 // TMC2208/TMC2224 HardwareSerial receive pin
 #define HW_TX            27 // TMC2208/TMC2224 HardwareSerial transmit pin
 
-#define POSITION_FLAG_SET     1
-#define POSITION_FLAG_UNSET   0
+#define FLAG_SET     1
+#define FLAG_UNSET   0
 
-bool positionFlag = POSITION_FLAG_UNSET;
+bool positionFlag = FLAG_UNSET;
+bool calibrationFlag = FLAG_UNSET;
 
 // Timer for the periodic interrupt
 hw_timer_t * timer1 = NULL;
@@ -140,7 +141,7 @@ void controlPosition(){
 
   if(currentPosition == desiredPosition && state != calibration){
     timerAlarmDisable(timer1);
-    positionFlag = POSITION_FLAG_SET;
+    positionFlag = FLAG_SET;
     Serial.print("My current position = ");
     Serial.println(currentPosition);
   }
@@ -227,6 +228,8 @@ void calibratePosition(){
 
   state = normal; // change state to normal operation state
 
+  calibrationFlag = FLAG_SET;; // notifies that calibration has ended
+
   Serial.println("Calibration ended successfully!");
   Serial.print("Min Position = ");
   Serial.println(minPosition);
@@ -271,7 +274,7 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
 
       setPosition((uint32_t)Rx_Doc["data"]);
 
-      while(positionFlag != POSITION_FLAG_SET){ // Wait for holder to reach desiredPosition
+      while(positionFlag != FLAG_SET){ // Wait for holder to reach desiredPosition
         static uint32_t last_time=0;
         uint32_t ms = millis();
         // if position is not set after 5s something went wrong
@@ -283,7 +286,7 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
         }
       }  
 
-      positionFlag = POSITION_FLAG_UNSET;   // Unset the positonFlag variable
+      positionFlag = FLAG_UNSET;   // Unset the positonFlag variable
 
 
       Serial.println("Got Position! Sending Ack");
@@ -307,6 +310,19 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
     }else if(!strcmp(expression, "ACK")){
 
     }else if(!strcmp(expression, "STATUS")){
+
+      if(!strcmp(Rx_Doc["data"], "calibration")){
+        state = calibration;
+        calibrationFlag = FLAG_UNSET;
+        calibratePosition();
+        while(calibrationFlag != FLAG_SET){} // wait for flag to be raised
+        Tx_Json.clear();
+        Tx_Doc["message_type"] = "STATUS";
+        Tx_Doc["data"] = "calibrated";
+        Serial.print("TX :");
+        Serial.println(Tx_Json);
+        ws.textAll(Tx_Json);
+      }
       
     }
 

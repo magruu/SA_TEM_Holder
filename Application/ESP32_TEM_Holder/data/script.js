@@ -23,7 +23,6 @@ var notification_id_calibration = 'notification_msg_calibration';
 // variable to see if holder is successfully calibrated
 var calibrationFlag = 0;
 
-
 /*************************************************************************************************
  * Slider Functionality
  * 
@@ -203,11 +202,11 @@ function calibrate(){
   }
 
   calibrationFlag = 0;
-  while(!calibrationFlag){}
-
+  while(!calibrationFlag){} // waits until calibration ended
+  
   removeNotification(notification_id_calibration);
-
   // TODO: add positive notification
+
     
 }
 
@@ -278,7 +277,8 @@ function get_ack_handler(data){
 function get_status_handler(data){
   switch (data) {
     case "calibrated":
-      console.log("Error 1 received!");
+      console.log("Calibration-End received!");
+      calibrationFlag = 1;
       break;
     case "ERROR_2":
       console.log("Error 2 received!");

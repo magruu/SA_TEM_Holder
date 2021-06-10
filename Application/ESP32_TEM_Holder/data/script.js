@@ -14,12 +14,23 @@ var notification_id_setting_position = 'notification_msg_setting_position';
 var notification_msg_position_set = '<div class="notification is-success" id="notification_msg_position_set"><h3 class="has-text-white"> Holder Position set!</h3></div>';
 var notification_id_position_set = 'notification_msg_position_set';
 
+var notification_msg_position_error = '<div class="notification is-danger" id="notification_msg_position_error"><h3>Something went wrong while setting position!</h3><h3>Holder Reboots! Refresh page afterwards...</h3></div>';
+var notification_id_position_error = 'notification_msg_position_error';
+
 var notification_msg_ws_diconnect = '<div class="notification is-danger" id="notification_msg_ws_diconnect"><h3>Server got disconnected! Please refresh the page...</h3></div>';
 var notification_id_ws_diconnect = 'notification_msg_ws_diconnect';
 
-var notification_msg_calibration = '<div class="notification is-warning" id="notification_msg_calibration"><h3>You have entered calibration mode!</h3> <h4>Be careful, you could damage the holder irreversibly</h4></div>';
+var notification_msg_calibration = '<div class="notification is-warning" id="notification_msg_calibration"><h3>You have entered calibration mode!</h3> <h4>Wait for holder to finish ...</h4><progress class="progress is-medium is-dark" max="100">45%</progress></div>';
 var notification_id_calibration = 'notification_msg_calibration';
 
+var notification_msg_calibration_set = '<div class="notification is-success" id="notification_msg_calibration_set"><h3 class="has-text-white">Holder calibrated successfully!</h3> <h4>It is fully operational agian ...</h4></div>';
+var notification_id_calibration_set = 'notification_msg_calibration_set';
+
+var notification_msg_calibration_error = '<div class="notification is-danger" id="notification_msg_calibration_error"><h3>Something went wrong while calibrating!</h3><h3>Holder Reboots! Refresh page afterwards...</h3></div>';
+var notification_id_calibration_error = 'notification_msg_calibration_error';
+
+// variable to see if holder is successfully calibrated
+var calibrationFlag = 0;
 
 /*************************************************************************************************
  * Slider Functionality
@@ -148,7 +159,8 @@ function removeNotification(msg_id){
  * 
  *    switch_Live_Mode():         Switches between Normal Mode and Live View Mode
  *    switch_Precision_Mode():    Switches between steps of 1 and 10
- *    switch_Calibration_Mode():  Switches between Calibration Mode and Normal Mode 
+ *    calibrate():                Enters calibration of Holder
+ *    calibrated():               Gets called when calibration has finished
  * 
  * ***********************************************************************************************/
 
@@ -183,26 +195,40 @@ function switch_Precision_Mode(){
 }
 
 // change to Calibration Mode
-function switch_Calibration_Mode(){
-  var switch_Calibration_Mode = document.getElementById('switch_Calibration_Mode');
+function calibrate(){
+  var button = document.getElementById('button_holder_calibrate');
   var button_holder_set = document.getElementById('button_holder_set');
-  
-    if(switch_Calibration_Mode.checked == true){
 
-      if (confirm("Your about to go to Calibration Mode! Are you sure?")) {
-        addNotification(notification_msg_calibration);
-        document.body.style.backgroundColor = 'grey';
-      } else{
-        removeNotification(notification_id_calibration);
-        document.body.style.backgroundColor = 'white';
-        switch_Calibration_Mode.checked = false;
-      }
-  
-      // TODO: send message to backend
-    } else {
-      removeNotification(notification_id_calibration);
-      document.body.style.backgroundColor = 'white';
-    }
+  if (confirm("Your about to enter Calibration Mode! Are you sure?")) {
+    addNotification(notification_msg_calibration);
+    button.classList += ' is-loading'; 
+    button_holder_set.className += ' is-loading';
+    var Tx_Json = { "message_type"  :   "STATUS", 
+                    "data"          :   "calibration"};
+    console.log('TX: ' + JSON.stringify(Tx_Json));
+    webSocket.send(JSON.stringify(Tx_Json));
+  } else{
+    removeNotification(notification_id_calibration);
+  }
+
+  calibrationFlag = 0;
+    
+}
+
+function calibrated(){
+  var button = document.getElementById('button_holder_calibrate');
+  var button_holder_set = document.getElementById('button_holder_set');
+
+  button.classList.remove('is-loading'); 
+  button_holder_set.classList.remove('is-loading');
+
+  removeNotification(notification_id_calibration);
+
+  addNotification(notification_msg_calibration_set);
+  setTimeout(function(){
+    removeNotification(notification_id_calibration_set);
+    }, 3000);
+
 }
 
 
@@ -269,13 +295,20 @@ function get_ack_handler(data){
 }
 
 // Status Handler: Informs user about errors in the backend
-function get_error_handler(data){
+function get_status_handler(data){
   switch (data) {
-    case "ERROR_1":
-      console.log("Error 1 received!");
+    case "calibrated":
+      console.log("Calibration-End received!");
+      calibrationFlag = 1;
+      calibrated();
       break;
-    case "ERROR_2":
-      console.log("Error 2 received!");
+    case "position error":
+      console.log("Position Error received!");
+      addNotification(notification_msg_position_error);
+      break;
+    case "calibration error":
+      console.log("Calibration Error received!");
+      addNotification(notification_msg_calibration_error);
       break;
     default:
       break;

@@ -20,6 +20,9 @@ var notification_id_ws_diconnect = 'notification_msg_ws_diconnect';
 var notification_msg_calibration = '<div class="notification is-warning" id="notification_msg_calibration"><h3>You have entered calibration mode!</h3> <h4>Wait for holder to finish ...</h4><progress class="progress is-medium is-dark" max="100">45%</progress></div>';
 var notification_id_calibration = 'notification_msg_calibration';
 
+var notification_msg_calibration_set = '<div class="notification is-success" id="notification_msg_calibration_set"><h3 class="has-text-white">Holder calibrated successfully!</h3> <h4>It is fully operational agian ...</h4></div>';
+var notification_id_calibration_set = 'notification_msg_calibration_set';
+
 // variable to see if holder is successfully calibrated
 var calibrationFlag = 0;
 
@@ -150,7 +153,8 @@ function removeNotification(msg_id){
  * 
  *    switch_Live_Mode():         Switches between Normal Mode and Live View Mode
  *    switch_Precision_Mode():    Switches between steps of 1 and 10
- *    switch_Calibration_Mode():  Switches between Calibration Mode and Normal Mode 
+ *    calibrate():                Enters calibration of Holder
+ *    calibrated():               Gets called when calibration has finished
  * 
  * ***********************************************************************************************/
 
@@ -213,7 +217,11 @@ function calibrated(){
   button_holder_set.classList.remove('is-loading');
 
   removeNotification(notification_id_calibration);
-  // TODO: add positive notification
+
+  addNotification(notification_msg_calibration_set);
+  setTimeout(function(){
+    removeNotification(notification_id_calibration_set);
+    }, 3000);
 
 }
 

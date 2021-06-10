@@ -49,13 +49,14 @@ hw_timer_t * timer1 = NULL;
 
 uint32_t currentPosition = 0;  // saves the current holder position
 uint32_t desiredPosition = 0; 
+uint32_t rawDesiredPosition = 0;
 
 uint32_t minPosition = 0;
 uint32_t maxPosition;
 
 enum Direction {left = 1, right = 0};
 
-enum State {normal, calibration};
+enum State {normal, calibration, setting};
 
 State state = calibration;
 
@@ -147,7 +148,7 @@ void controlPosition(){
   }
 
   switch(state){
-    case normal:
+    case setting:
       if (currentPosition < desiredPosition){
         ++currentPosition;
       } else if(currentPosition > desiredPosition){
@@ -156,6 +157,8 @@ void controlPosition(){
       break;
     case calibration:
       ++currentPosition;
+      break;
+    case normal:
       break;
   }
 }
@@ -183,15 +186,17 @@ void calibratePosition(){
   delay(1000);
   timerAlarmEnable(timer1);
   
+   uint32_t last_time=millis();
   while(true){
-    static uint32_t last_time=0;
+
     uint32_t ms = millis();
     // if no Diag Signal after 5s something went wrong
-    if((ms-last_time) > 5000) { //run every 6s
+    if((ms-last_time) > 15000) { //run every 10s
       last_time = ms;
       // TODO: add notification
-      Serial.println("Something went wrong with the calibration, repower holder!");
-      abort;
+      Serial.println("Something went wrong with the calibration, holder reboots!");
+      delay(5000);
+      ESP.restart();
     }
 
     if(driver.diag()){
@@ -207,15 +212,17 @@ void calibratePosition(){
   delay(1000);
   timerAlarmEnable(timer1);
   
+  last_time = millis();
   while(true){
-    static uint32_t last_time=0;
+
     uint32_t ms = millis();
     // if no Diag Signal after 5s something went wrong
-    if((ms-last_time) > 5000) { //run every 6s
+    if((ms-last_time) > 15000) { //run every 15s
       last_time = ms;
       // TODO: add notification
-      Serial.println("Something went wrong with the calibration, repower holder!");
-      abort;
+      Serial.println("Something went wrong with the calibration, holder reboots!");
+      delay(5000);
+      ESP.restart();
     }
 
     if(driver.diag()){
@@ -272,42 +279,18 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
 
       //Holder_Pos.set_pos(currentPosition, Holder_Pos.get_eeprom_pos());
 
-      setPosition((uint32_t)Rx_Doc["data"]);
-
-      while(positionFlag != FLAG_SET){ // Wait for holder to reach desiredPosition
-        static uint32_t last_time=0;
-        uint32_t ms = millis();
-        // if position is not set after 5s something went wrong
-        if((ms-last_time) > 10000) { //run every 10s
-          last_time = ms;
-          // TODO: add notification
-          Serial.println("Something went wrong while setting the position, repower holder!");
-          abort;
-        }
-      }  
-
-      positionFlag = FLAG_UNSET;   // Unset the positonFlag variable
-
-
-      Serial.println("Got Position! Sending Ack");
-      Tx_Doc["message_type"] = "ACK";
-      Tx_Doc["data"] = "SET";
-      serializeJson(Tx_Doc, Tx_Json);
-      Serial.print("TX :");
-      Serial.println(Tx_Json);
-      ws.textAll(Tx_Json);
-
-      Tx_Json.clear();
+      rawDesiredPosition = (uint32_t)Rx_Doc["data"];
+      state = setting;
       
-      Serial.println("Setting Position on all Clients");
-      Tx_Doc["message_type"] = "POSITION";
-      Tx_Doc["data"] = Rx_Doc["data"];
-      serializeJson(Tx_Doc, Tx_Json);
-      Serial.print("TX :");
-      Serial.println(Tx_Json);
-      ws.textAll(Tx_Json);
+      // Serial.println("Setting Position on all Clients");
+      // Tx_Doc["message_type"] = "POSITION";
+      // Tx_Doc["data"] = Rx_Doc["data"];
+      // serializeJson(Tx_Doc, Tx_Json);
+      // Serial.print("TX :");
+      // Serial.println(Tx_Json);
+      // ws.textAll(Tx_Json);
 
-      Tx_Json.clear();
+      // Tx_Json.clear();
 
     }else if(!strcmp(expression, "ACK")){
 
@@ -495,7 +478,19 @@ void loop(){
 
   if (state == calibration){
         calibratePosition();
-        while(calibrationFlag != FLAG_SET){} // wait for flag to be raised
+
+        static uint32_t last_time=millis();
+        while(calibrationFlag != FLAG_SET){
+          uint32_t ms = millis();
+          // if position is not set after 5s something went wrong
+          if((ms-last_time) > 15000) { //run every 10s
+            last_time = ms;
+            // TODO: add notification
+            Serial.println("Something went wrong while calibrating, holder reboots!");
+            delay(5000);
+            ESP.restart();
+          }
+        } // wait for flag to be raised
         Tx_Json.clear();
         Tx_Doc["message_type"] = "STATUS";
         Tx_Doc["data"] = "calibrated";
@@ -506,4 +501,36 @@ void loop(){
 
         Tx_Json.clear();
   }
+
+  if(state == setting){
+      setPosition(rawDesiredPosition);
+
+      static uint32_t last_time=millis();
+      while(positionFlag != FLAG_SET){ // Wait for holder to reach desiredPosition
+        
+        uint32_t ms = millis();
+        // if position is not set after 5s something went wrong
+        if((ms-last_time) > 15000) { //run every 10s
+          last_time = ms;
+          // TODO: add notification
+          Serial.println("Something went wrong while setting the position, holder reboots!");
+          delay(5000);
+          // ESP.restart();
+        }
+      }  
+
+      positionFlag = FLAG_UNSET;   // Unset the positonFlag variable
+      state = normal;
+
+      Serial.println("Got Position! Sending Ack");
+      Tx_Doc["message_type"] = "ACK";
+      Tx_Doc["data"] = "SET";
+      serializeJson(Tx_Doc, Tx_Json);
+      Serial.print("TX :");
+      Serial.println(Tx_Json);
+      ws.textAll(Tx_Json);
+
+      Tx_Json.clear();
+  }
+
 }

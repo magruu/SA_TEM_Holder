@@ -4,12 +4,7 @@
 #include <AsyncTCP.h>
 #include <SPIFFS.h>
 #include <ArduinoJson.h>
-#include <EEPROM.h>
 #include <TMCStepper.h>
-
-
-#include "Eeprom_Lib.h"
-
 
 /*************************************************************************************************
  * Network Credentials
@@ -59,10 +54,6 @@ enum Direction {left = 1, right = 0};
 enum State {normal, calibration, setting};
 
 State state = calibration;
-
-Eeprom_Holder_Pos Holder_Pos;
-
-
 
 /*************************************************************************************************
  * Initialize JSON element
@@ -226,7 +217,7 @@ void calibratePosition(){
     // if no Diag Signal after 5s something went wrong
     if((ms-last_time) > 15000) { //run every 15s
       last_time = ms;
-      
+
       Tx_Doc["message_type"] = "STATUS";
       Tx_Doc["data"] = "calibration error";
       serializeJson(Tx_Doc, Tx_Json);
@@ -290,8 +281,6 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
     const char* expression = (const char*)Rx_Doc["message_type"];
 
     if(!strcmp(expression, "POSITION")){ 
-
-      //Holder_Pos.set_pos(currentPosition, Holder_Pos.get_eeprom_pos());
 
       rawDesiredPosition = (uint32_t)Rx_Doc["data"];
       state = setting;
@@ -422,23 +411,6 @@ void setup(){
 
   calibratePosition();
 
-  // Initialize EEPROM with predefined size
-  Serial.println("===== EEPROM Init =====");
-  Serial.print("Eeprom Size: ");
-  Serial.print(EEPROM_SIZE);
-  Serial.println(" Bytes");
-  if(!EEPROM.begin(EEPROM_SIZE)){
-    Serial.println("An Error has occurred while mounting EEPROM");
-    return;
-  }
-
-  // currentPosition = Holder_Pos.get_pos();
-  // Serial.print("Recovered Holder Position: ");
-  // Serial.println(Holder_Pos.get_pos());
-  // Serial.print("Holder EEPROM Position: ");
-  // Serial.println(Holder_Pos.get_eeprom_pos());
-  // Serial.println();
-
   // Connect to Wi-Fi
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
@@ -524,7 +496,7 @@ void loop(){
   }else if(state == setting){
       setPosition(rawDesiredPosition);
 
-      static uint32_t last_time=millis();
+      uint32_t last_time=millis();
       while(positionFlag != FLAG_SET){ // Wait for holder to reach desiredPosition
         
         uint32_t ms = millis();

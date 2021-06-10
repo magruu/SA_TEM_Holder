@@ -278,7 +278,7 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
         static uint32_t last_time=0;
         uint32_t ms = millis();
         // if position is not set after 5s something went wrong
-        if((ms-last_time) > 5000) { //run every 6s
+        if((ms-last_time) > 10000) { //run every 10s
           last_time = ms;
           // TODO: add notification
           Serial.println("Something went wrong while setting the position, repower holder!");
@@ -307,6 +307,8 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
       Serial.println(Tx_Json);
       ws.textAll(Tx_Json);
 
+      Tx_Json.clear();
+
     }else if(!strcmp(expression, "ACK")){
 
     }else if(!strcmp(expression, "STATUS")){
@@ -314,14 +316,6 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
       if(!strcmp(Rx_Doc["data"], "calibration")){
         state = calibration;
         calibrationFlag = FLAG_UNSET;
-        calibratePosition();
-        while(calibrationFlag != FLAG_SET){} // wait for flag to be raised
-        Tx_Json.clear();
-        Tx_Doc["message_type"] = "STATUS";
-        Tx_Doc["data"] = "calibrated";
-        Serial.print("TX :");
-        Serial.println(Tx_Json);
-        ws.textAll(Tx_Json);
       }
       
     }
@@ -498,4 +492,18 @@ void loop(){
   //   state = calibration;
   //   calibratePosition();
   // }
+
+  if (state == calibration){
+        calibratePosition();
+        while(calibrationFlag != FLAG_SET){} // wait for flag to be raised
+        Tx_Json.clear();
+        Tx_Doc["message_type"] = "STATUS";
+        Tx_Doc["data"] = "calibrated";
+        Serial.print("TX :");
+        serializeJson(Tx_Doc, Tx_Json);
+        Serial.println(Tx_Json);
+        ws.textAll(Tx_Json);
+
+        Tx_Json.clear();
+  }
 }

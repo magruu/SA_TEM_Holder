@@ -195,19 +195,26 @@ function calibrate(){
     button_holder_set.className += ' is-loading';
     var Tx_Json = { "message_type"  :   "STATUS", 
                     "data"          :   "calibration"};
-    console.log(JSON.stringify(Tx_Json));
+    console.log('TX: ' + JSON.stringify(Tx_Json));
     webSocket.send(JSON.stringify(Tx_Json));
   } else{
     removeNotification(notification_id_calibration);
   }
 
   calibrationFlag = 0;
-  while(!calibrationFlag){} // waits until calibration ended
-  
+    
+}
+
+function calibrated(){
+  var button = document.getElementById('button_holder_calibrate');
+  var button_holder_set = document.getElementById('button_holder_set');
+
+  button.classList.remove('is-loading'); 
+  button_holder_set.classList.remove('is-loading');
+
   removeNotification(notification_id_calibration);
   // TODO: add positive notification
 
-    
 }
 
 
@@ -279,6 +286,7 @@ function get_status_handler(data){
     case "calibrated":
       console.log("Calibration-End received!");
       calibrationFlag = 1;
+      calibrated();
       break;
     case "ERROR_2":
       console.log("Error 2 received!");

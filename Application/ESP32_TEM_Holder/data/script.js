@@ -23,7 +23,7 @@ var notification_id_ws_diconnect = 'notification_msg_ws_diconnect';
 var notification_msg_calibration = '<div class="notification is-warning" id="notification_msg_calibration"><h3>You have entered calibration mode!</h3> <h4>Wait for holder to finish ...</h4><progress class="progress is-medium is-dark" max="100">45%</progress></div>';
 var notification_id_calibration = 'notification_msg_calibration';
 
-var notification_msg_calibration_set = '<div class="notification is-success" id="notification_msg_calibration_set"><h3 class="has-text-white">Holder calibrated successfully!</h3> <h4>It is fully operational agian ...</h4></div>';
+var notification_msg_calibration_set = '<div class="notification is-success" id="notification_msg_calibration_set"><h3 class="has-text-white">Holder calibrated successfully!</h3> <h4 class="has-text-white">It is fully operational again ...</h4></div>';
 var notification_id_calibration_set = 'notification_msg_calibration_set';
 
 var notification_msg_calibration_error = '<div class="notification is-danger" id="notification_msg_calibration_error"><h3>Something went wrong while calibrating!</h3><h3>Holder Reboots! Refresh page afterwards...</h3></div>';
@@ -302,7 +302,7 @@ function get_status_handler(data){
       calibrationFlag = 1;
       calibrated();
       break;
-    case "position error":
+    case "positioning error":
       console.log("Position Error received!");
       addNotification(notification_msg_position_error);
       break;

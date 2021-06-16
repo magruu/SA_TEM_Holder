@@ -135,6 +135,7 @@ void controlPosition(){
 
   if(currentPosition == desiredPosition && state != calibration){
     timerAlarmDisable(timer1);
+    digitalWrite(EN_PIN, HIGH);  // Disable the Stepper Driver
     positionFlag = FLAG_SET;
     Serial.print("My current position = ");
     Serial.println(currentPosition);
@@ -166,17 +167,20 @@ void setPosition(uint32_t position){
     driver.SGTHRS(STALL_VALUE_LEFT);
     driver.shaft(left);
   } 
+  digitalWrite(EN_PIN, LOW);  // Enable the Stepper Driver
   timerAlarmEnable(timer1);
 }
 
 void calibratePosition(){
 
   timerAlarmDisable(timer1);
+  digitalWrite(EN_PIN, HIGH);  // Disable the Stepper Driver
   Serial.println();
   Serial.println("Calibration started...");
   driver.SGTHRS(STALL_VALUE_STARTUP);
   driver.shaft(left);
   delay(1000);
+  digitalWrite(EN_PIN, LOW);  // Enable the Stepper Driver
   timerAlarmEnable(timer1);
   delay(2);
   driver.SGTHRS(STALL_VALUE_LEFT);
@@ -203,6 +207,7 @@ void calibratePosition(){
 
     if(driver.diag()){
       timerAlarmDisable(timer1);
+      digitalWrite(EN_PIN, HIGH);  // Disable the Stepper Driver
       break;
     }
   }
@@ -212,6 +217,7 @@ void calibratePosition(){
   driver.SGTHRS(STALL_VALUE_STARTUP);
   driver.shaft(right);
   delay(1000);
+  digitalWrite(EN_PIN, LOW);  // Enable the Stepper Driver
   timerAlarmEnable(timer1);
   delay(2);
   driver.SGTHRS(STALL_VALUE_RIGHT);
@@ -238,6 +244,7 @@ void calibratePosition(){
 
     if(driver.diag()){
       timerAlarmDisable(timer1);
+      digitalWrite(EN_PIN, HIGH);  // Disable the Stepper Driver
       break;
     }
   }
@@ -396,7 +403,7 @@ void setup(){
   driver.toff(4);
   //driver.VACTUAL(SPEED);
   driver.blank_time(24);
-  driver.rms_current(140); // mA
+  driver.rms_current(140, 0.1); // mA
   driver.en_spreadCycle(false);
   driver.mstep_reg_select(true);
   driver.microsteps(MICROSTEPS_RESOLUTION);

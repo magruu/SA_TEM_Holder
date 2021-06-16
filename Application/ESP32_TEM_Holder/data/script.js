@@ -29,8 +29,17 @@ var notification_id_calibration_set = 'notification_msg_calibration_set';
 var notification_msg_calibration_error = '<div class="notification is-danger" id="notification_msg_calibration_error"><h3>Something went wrong while calibrating!</h3><h3>Holder Reboots! Refresh page afterwards...</h3></div>';
 var notification_id_calibration_error = 'notification_msg_calibration_error';
 
+var notification_msg_homing = '<div class="notification is-warning" id="notification_msg_homing"><h3>Holder is homing!</h3> <h4>Wait for holder to finish ...</h4><progress class="progress is-medium is-dark" max="100">45%</progress></div>';
+var notification_id_homing = 'notification_msg_homing';
+
+var notification_msg_homing_set = '<div class="notification is-success" id="notification_msg_homing_set"><h3 class="has-text-white">Holder is at home position!</h3> <h4 class="has-text-white">Holder can be turned off!</h4></div>';
+var notification_id_homing_set = 'notification_msg_homing_set';
+
 // variable to see if holder is successfully calibrated
 var calibrationFlag = 0;
+
+// variable to see if holder is successfully homed
+var homingFlag = 0;
 
 /*************************************************************************************************
  * Slider Functionality
@@ -161,6 +170,8 @@ function removeNotification(msg_id){
  *    switch_Precision_Mode():    Switches between steps of 1 and 10
  *    calibrate():                Enters calibration of Holder
  *    calibrated():               Gets called when calibration has finished
+ *    homing():                   Enters homing of Holder
+ *    homingDone():               Gets calles when homing process has finished
  * 
  * ***********************************************************************************************/
 
@@ -198,11 +209,14 @@ function switch_Precision_Mode(){
 function calibrate(){
   var button = document.getElementById('button_holder_calibrate');
   var button_holder_set = document.getElementById('button_holder_set');
+  var button_holder_homing = document.getElementById('button_holder_homing');
 
   if (confirm("Your about to enter Calibration Mode! Are you sure?")) {
     addNotification(notification_msg_calibration);
     button.classList += ' is-loading'; 
     button_holder_set.className += ' is-loading';
+    button_holder_homing.style.visibility = 'hidden';
+
     var Tx_Json = { "message_type"  :   "STATUS", 
                     "data"          :   "calibration"};
     console.log('TX: ' + JSON.stringify(Tx_Json));
@@ -218,9 +232,11 @@ function calibrate(){
 function calibrated(){
   var button = document.getElementById('button_holder_calibrate');
   var button_holder_set = document.getElementById('button_holder_set');
+  var button_holder_homing = document.getElementById('button_holder_homing');
 
   button.classList.remove('is-loading'); 
   button_holder_set.classList.remove('is-loading');
+  button_holder_homing.style.visibility = "visible";
 
   removeNotification(notification_id_calibration);
 
@@ -231,6 +247,47 @@ function calibrated(){
 
 }
 
+function homing(){
+  var button = document.getElementById('button_holder_homing');
+  var button_holder_set = document.getElementById('button_holder_set');
+  var button_holder_calibrate = document.getElementById('button_holder_calibrate');
+
+  if (confirm("Your about to bring Holder to home position! Are you sure?")) {
+    addNotification(notification_msg_homing);
+    button.classList += ' is-loading'; 
+    button_holder_set.className += ' is-loading';
+    button_holder_calibrate.style.visibility = 'hidden';
+
+    var Tx_Json = { "message_type"  :   "STATUS", 
+                    "data"          :   "homing"};
+
+    console.log('TX: ' + JSON.stringify(Tx_Json));
+    webSocket.send(JSON.stringify(Tx_Json));
+  } else {
+    removeNotification(notification_id_homing);
+  }
+
+  homingFlag = 0;
+  
+}
+
+function homingDone(){
+  var button = document.getElementById('button_holder_homing');
+  var button_holder_set = document.getElementById('button_holder_set');
+  var button_holder_calibrate = document.getElementById('button_holder_calibrate');
+
+  button.classList.remove('is-loading'); 
+  button_holder_set.classList.remove('is-loading');
+  button_holder_calibrate.style.visibility = 'visible';
+
+  removeNotification(notification_id_homing);
+
+  addNotification(notification_msg_homing_set);
+  setTimeout(function(){
+    removeNotification(notification_id_homing_set);
+    }, 6000);
+
+}
 
 /*************************************************************************************************
  * RX Message Handlers
@@ -302,6 +359,10 @@ function get_status_handler(data){
       calibrationFlag = 1;
       calibrated();
       break;
+    case "homing done":
+      console.log("Homing-End received!");
+      homingFlag = 1;
+      homingDone();
     case "positioning error":
       console.log("Position Error received!");
       addNotification(notification_msg_position_error);

@@ -51,7 +51,7 @@ uint32_t maxPosition;
 
 enum Direction {left = 1, right = 0};
 
-enum State {normal, calibration, setting};
+enum State {normal, calibration, setting, homing};
 
 State state = calibration;
 
@@ -153,6 +153,13 @@ void controlPosition(){
       ++currentPosition;
       break;
     case normal:
+      break;
+    case homing:
+      if (currentPosition < desiredPosition){
+        ++currentPosition;
+      } else if(currentPosition > desiredPosition){
+        --currentPosition;
+      }
       break;
   }
 }
@@ -264,6 +271,12 @@ void calibratePosition(){
 
 }
 
+void homePosition(){
+  Serial.println("Homing Initiated!");
+  uint32_t homePosition = minPosition + 20.0/MAX_HOLDER_VALUE * maxPosition;
+  setPosition(homePosition);
+}
+
 // Callback function when timer elapsed
 void IRAM_ATTR onTimer() {
 
@@ -315,6 +328,8 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
       if(!strcmp(Rx_Doc["data"], "calibration")){
         state = calibration;
         calibrationFlag = FLAG_UNSET;
+      }else if(!strcmp(Rx_Doc["data"], "homing")){
+        state = homing;
       }
       
     }
@@ -541,6 +556,41 @@ void loop(){
       Serial.println(Tx_Json);
       ws.textAll(Tx_Json);
       Tx_Json.clear();
+  }else if (state == homing){
+      homePosition();
+
+      uint32_t last_time=millis();
+      while(positionFlag != FLAG_SET){ // Wait for holder to reach desiredPosition
+        
+        uint32_t ms = millis();
+        // if position is not set after 5s something went wrong
+        if((ms-last_time) > 15000) { //run every 15s
+          last_time = ms;
+
+          Tx_Doc["message_type"] = "STATUS";
+          Tx_Doc["data"] = "positioning error";
+          serializeJson(Tx_Doc, Tx_Json);
+          Serial.print("TX :");
+          Serial.println(Tx_Json);
+          ws.textAll(Tx_Json);
+          Tx_Json.clear();
+          Serial.println("Something went wrong while setting the position, holder reboots!");
+          delay(5000);
+          ESP.restart();
+        }
+      }
+
+      positionFlag = FLAG_UNSET;   // Unset the positonFlag variable
+      state = normal;
+
+      Serial.println("Homing done! Sending Ack");
+      Tx_Doc["message_type"] = "STATUS";
+      Tx_Doc["data"] = "homing done";
+      serializeJson(Tx_Doc, Tx_Json);
+      Serial.print("TX :");
+      Serial.println(Tx_Json);
+      ws.textAll(Tx_Json);
+      Tx_Json.clear();  
   }
 
 }

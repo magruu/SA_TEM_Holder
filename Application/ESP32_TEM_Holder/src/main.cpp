@@ -294,12 +294,6 @@ void calibratePosition(){
 
 }
 
-void homePosition(){
-  Serial.println("Homing Initiated!");
-  uint32_t homePosition = HOME_HOLDER_VALUE;
-  setPosition(homePosition);
-}
-
 // Callback function when timer elapsed
 void IRAM_ATTR onTimer() {
   controlPosition();

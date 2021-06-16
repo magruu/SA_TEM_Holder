@@ -1,0 +1,16 @@
+
+#notification_msg_setting_position {
+  transition: opacity 0.5s;
+}
+
+#notification_msg_position_set {
+  transition: opacity 0.5s;
+}
+
+.slider_button{
+  color: grey;
+}
+
+.slider_button:hover{
+  color: #23D160;
+}

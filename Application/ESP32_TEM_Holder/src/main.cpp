@@ -14,11 +14,11 @@
 // const char* ssid = "NETGEAR";
 // const char* password = "mhsi12jaia";
 
-const char* ssid = "MagruuFi";
-const char* password = "kayabanana";
+// const char* ssid = "MagruuFi";
+// const char* password = "kayabanana";
 
-// const char* ssid = "ZMB-Y42F54-WIFI"; // ZMB Credentials
-// const char* password = "jumbo8+Cloud";
+const char* ssid = "ZMB-Y42F54-WIFI"; // ZMB Credentials
+const char* password = "jumbo8+Cloud";
 
 /*************************************************************************************************
  * User Global Variables
@@ -51,7 +51,7 @@ uint32_t maxPosition;
 
 enum Direction {left = 1, right = 0};
 
-enum State {normal, calibration, setting};
+enum State {normal, calibration, setting, homing};
 
 State state = calibration;
 
@@ -97,6 +97,7 @@ String Rx_Json;                     //Json-ized String
  * ***********************************************************************************************/
 
 #define MAX_HOLDER_VALUE        400.0
+#define HOME_HOLDER_VALUE       50.0
 
 /*************************************************************************************************
  * Initialize Stepper Motor Driver
@@ -149,6 +150,13 @@ void controlPosition(){
         --currentPosition;
       }
       break;
+    case homing:
+      if (currentPosition < desiredPosition){
+        ++currentPosition;
+      } else if(currentPosition > desiredPosition){
+        --currentPosition;
+      }
+      break;
     case calibration:
       ++currentPosition;
       break;
@@ -159,7 +167,12 @@ void controlPosition(){
 
 void setPosition(uint32_t position){
 
-  desiredPosition = position/MAX_HOLDER_VALUE * maxPosition;
+  
+  if(position < 40){
+    desiredPosition = 0;
+  } else {
+    desiredPosition = (position-40)/MAX_HOLDER_VALUE * maxPosition;
+  }
   if (currentPosition < desiredPosition){
     driver.SGTHRS(STALL_VALUE_RIGHT);
     driver.shaft(right);
@@ -264,6 +277,12 @@ void calibratePosition(){
 
 }
 
+void homePosition(){
+  Serial.println("Homing Initiated!");
+  uint32_t homePosition = minPosition + 20.0;
+  setPosition(homePosition);
+}
+
 // Callback function when timer elapsed
 void IRAM_ATTR onTimer() {
 
@@ -315,6 +334,9 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
       if(!strcmp(Rx_Doc["data"], "calibration")){
         state = calibration;
         calibrationFlag = FLAG_UNSET;
+      }else if(!strcmp(Rx_Doc["data"], "homing")){
+        state = homing;
+        positionFlag =  FLAG_UNSET;
       }
       
     }
@@ -513,7 +535,7 @@ void loop(){
       while(positionFlag != FLAG_SET){ // Wait for holder to reach desiredPosition
         
         uint32_t ms = millis();
-        // if position is not set after 5s something went wrong
+        // if position is not set after 15s something went wrong
         if((ms-last_time) > 15000) { //run every 15s
           last_time = ms;
 
@@ -541,6 +563,42 @@ void loop(){
       Serial.println(Tx_Json);
       ws.textAll(Tx_Json);
       Tx_Json.clear();
+
+  }else if (state == homing){
+      setPosition(HOME_HOLDER_VALUE);
+
+      uint32_t last_time_2=millis();
+      while(positionFlag != FLAG_SET){ // Wait for holder to reach desiredPosition
+        
+        uint32_t ms_2 = millis();
+        // if position is not set after 15s something went wrong
+        if((ms_2-last_time_2) > 15000) { //run every 15s
+          last_time_2 = ms_2;
+
+          Tx_Doc["message_type"] = "STATUS";
+          Tx_Doc["data"] = "positioning error";
+          serializeJson(Tx_Doc, Tx_Json);
+          Serial.print("TX :");
+          Serial.println(Tx_Json);
+          ws.textAll(Tx_Json);
+          Tx_Json.clear();
+          Serial.println("Something went wrong while setting the position, holder reboots!");
+          delay(5000);
+          ESP.restart();
+        }
+      }
+
+      positionFlag = FLAG_UNSET;   // Unset the positonFlag variable
+      state = normal;
+
+      Serial.println("Homing done! Sending Ack");
+      Tx_Doc["message_type"] = "STATUS";
+      Tx_Doc["data"] = "homing done";
+      serializeJson(Tx_Doc, Tx_Json);
+      Serial.print("TX :");
+      Serial.println(Tx_Json);
+      ws.textAll(Tx_Json);
+      Tx_Json.clear();  
   }
 
 }

@@ -97,6 +97,7 @@ String Rx_Json;                     //Json-ized String
  * ***********************************************************************************************/
 
 #define MAX_HOLDER_VALUE        400.0
+#define HOME_HOLDER_VALUE       50.0
 
 /*************************************************************************************************
  * Initialize Stepper Motor Driver
@@ -149,17 +150,17 @@ void controlPosition(){
         --currentPosition;
       }
       break;
-    case calibration:
-      ++currentPosition;
-      break;
-    case normal:
-      break;
     case homing:
       if (currentPosition < desiredPosition){
         ++currentPosition;
       } else if(currentPosition > desiredPosition){
         --currentPosition;
       }
+      break;
+    case calibration:
+      ++currentPosition;
+      break;
+    case normal:
       break;
   }
 }
@@ -330,6 +331,7 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
         calibrationFlag = FLAG_UNSET;
       }else if(!strcmp(Rx_Doc["data"], "homing")){
         state = homing;
+        positionFlag =  FLAG_UNSET;
       }
       
     }
@@ -528,7 +530,7 @@ void loop(){
       while(positionFlag != FLAG_SET){ // Wait for holder to reach desiredPosition
         
         uint32_t ms = millis();
-        // if position is not set after 5s something went wrong
+        // if position is not set after 15s something went wrong
         if((ms-last_time) > 15000) { //run every 15s
           last_time = ms;
 
@@ -556,16 +558,17 @@ void loop(){
       Serial.println(Tx_Json);
       ws.textAll(Tx_Json);
       Tx_Json.clear();
-  }else if (state == homing){
-      homePosition();
 
-      uint32_t last_time=millis();
+  }else if (state == homing){
+      setPosition(HOME_HOLDER_VALUE);
+
+      uint32_t last_time_2=millis();
       while(positionFlag != FLAG_SET){ // Wait for holder to reach desiredPosition
         
-        uint32_t ms = millis();
-        // if position is not set after 5s something went wrong
-        if((ms-last_time) > 15000) { //run every 15s
-          last_time = ms;
+        uint32_t ms_2 = millis();
+        // if position is not set after 15s something went wrong
+        if((ms_2-last_time_2) > 15000) { //run every 15s
+          last_time_2 = ms_2;
 
           Tx_Doc["message_type"] = "STATUS";
           Tx_Doc["data"] = "positioning error";

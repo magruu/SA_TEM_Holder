@@ -368,6 +368,7 @@ function get_status_handler(data){
       console.log("Homing-End received!");
       homingFlag = 1;
       homingDone();
+      break;
     case "positioning error":
       console.log("Position Error received!");
       addNotification(notification_msg_position_error);

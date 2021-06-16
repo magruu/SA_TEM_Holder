@@ -76,9 +76,9 @@ String Rx_Json;                     //Json-ized String
 // #define STALL_VALUE_LEFT      35 
 // #define STALL_VALUE_RIGHT     40
 
-// OK for 12V
-#define STALL_VALUE_LEFT      37
-#define STALL_VALUE_RIGHT     37
+// OK for 12V 
+#define STALL_VALUE_LEFT      36
+#define STALL_VALUE_RIGHT     36
 
 #define STALL_VALUE_STARTUP   0
 
@@ -96,8 +96,21 @@ String Rx_Json;                     //Json-ized String
  * 
  * ***********************************************************************************************/
 
-#define MAX_HOLDER_VALUE        400.0
-#define HOME_HOLDER_VALUE       50.0
+// This values are corresponding values to the frontend
+#define MIN_HOLDER_FRONTEND_VALUE          0.0
+#define POS_1_HOLDER_FRONTEND_VALUE       50.0
+#define POS_2_HOLDER_FRONTEND_VALUE      200.0
+#define POS_3_HOLDER_FRONTEND_VALUE      350.0
+#define MAX_HOLDER_FRONTEND_VALUE        400.0
+
+// This values need to be calibrated in the beginning
+#define MIN_HOLDER_BACKEND_VALUE        300.0 // Offset at beginning
+#define POS_1_HOLDER_BACKEND_VALUE      2346.0
+#define POS_2_HOLDER_BACKEND_VALUE      44580.0
+#define POS_3_HOLDER_BACKEND_VALUE      80946.0
+#define MAX_HOLDER_BACKEND_VALUE        93500.0 // Offset at end
+
+#define HOME_HOLDER_VALUE               POS_1_HOLDER_FRONTEND_VALUE
 
 /*************************************************************************************************
  * Initialize Stepper Motor Driver
@@ -127,7 +140,7 @@ AsyncWebSocket ws("/ws"); // Create WebSocketServer (usually on port 81)
  *                        if position is set or not
  *    calibratePosition(): calibrates the holder automaticly and aborts it if something goes wrong.
  *                         Is done on startup, but can be called by user
- *    setPosition():      converts the desiredPosition from values of 0 to MAX_HOLDER_VALUE (on the GUI) to values of the internal map
+ *    setPosition():      converts the desiredPosition from values of 0 to MAX_HOLDER_FRONTEND_VALUE (on the GUI) to values of the internal map
  *    
  * ***********************************************************************************************/
 
@@ -167,12 +180,16 @@ void controlPosition(){
 
 void setPosition(uint32_t position){
 
-  
-  if(position < 40){
-    desiredPosition = 0;
-  } else {
-    desiredPosition = (position-40)/MAX_HOLDER_VALUE * maxPosition;
+  if(position <= POS_1_HOLDER_FRONTEND_VALUE && position >= MIN_HOLDER_FRONTEND_VALUE){
+    desiredPosition = (POS_1_HOLDER_BACKEND_VALUE-MIN_HOLDER_BACKEND_VALUE)/(POS_1_HOLDER_FRONTEND_VALUE-MIN_HOLDER_FRONTEND_VALUE)*(position-MIN_HOLDER_FRONTEND_VALUE) + MIN_HOLDER_BACKEND_VALUE;
+  } else if(position <= POS_2_HOLDER_FRONTEND_VALUE && position > POS_1_HOLDER_FRONTEND_VALUE){
+    desiredPosition = (POS_2_HOLDER_BACKEND_VALUE-POS_1_HOLDER_BACKEND_VALUE)/(POS_2_HOLDER_FRONTEND_VALUE-POS_1_HOLDER_FRONTEND_VALUE)*(position-POS_1_HOLDER_FRONTEND_VALUE) + POS_1_HOLDER_BACKEND_VALUE;
+  } else if(position <= POS_3_HOLDER_FRONTEND_VALUE && position > POS_2_HOLDER_FRONTEND_VALUE){
+    desiredPosition = (POS_3_HOLDER_BACKEND_VALUE-POS_2_HOLDER_BACKEND_VALUE)/(POS_3_HOLDER_FRONTEND_VALUE-POS_2_HOLDER_FRONTEND_VALUE)*(position-POS_2_HOLDER_FRONTEND_VALUE) + POS_2_HOLDER_BACKEND_VALUE;
+  } else if(position <= MAX_HOLDER_FRONTEND_VALUE && position > POS_3_HOLDER_FRONTEND_VALUE){
+    desiredPosition = (MAX_HOLDER_BACKEND_VALUE-POS_3_HOLDER_BACKEND_VALUE)/(MAX_HOLDER_FRONTEND_VALUE-POS_3_HOLDER_FRONTEND_VALUE)*(position-POS_3_HOLDER_FRONTEND_VALUE) + POS_3_HOLDER_BACKEND_VALUE;
   }
+
   if (currentPosition < desiredPosition){
     driver.SGTHRS(STALL_VALUE_RIGHT);
     driver.shaft(right);

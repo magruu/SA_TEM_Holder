@@ -22,19 +22,19 @@
 
     <!-- own javascript bits -->
     <script src="/script.js"></script>
-    
+
     <!-- Javascipt bits that have to be called here-->
     <script>
 
       // Websocket Functionality
       var address = window.location.hostname;
       var webSocket = new WebSocket("ws://"+address+"/ws");
-      
+
       webSocket.onmessage = function(event) {
         //console.log(event.data);
         get_message_handler(event);
       }
-      
+
       webSocket.onopen = function(event) {
         console.log("Connection opened!");
         removeNotification(notification_id_ws_diconnect);
@@ -56,7 +56,7 @@
       <div class="container">
         <div class="box content ">
 
-          <h1> Automatic <b>TEM-Holder</b> for your FEI Talos  <p class="has-text-right" style="font-size: 15px;"> by Marco Failla </p></h1>
+          <h1> <b>Automatic multi-sample TEM-Holder </b> <p class="has-text-right" style="font-size: 15px;"> by Marco Failla </p></h1>
 
         </div>
       </div>
@@ -110,7 +110,7 @@
 
               </div>
 
-          <!-- Position 1/2/3 Buttons -->
+          <!-- Position 1/2/3 Checkboxes -->
               <div class="columns is-centered">
 
                   <div class="content column is-one-third">
@@ -132,7 +132,10 @@
                 <div class="container ">
                   <div class="columns">
                     <div class="column ">
-                        <button onclick="set_holder_pos()" class="button is-black is-fullwidth" id="button_holder_set" > Set Position</button>
+                        <button onclick="set_holder_pos()" class="button is-success is-fullwidth" id="button_holder_set" >Set Position</button>
+                    </div>
+                    <div class="column ">
+                        <button onclick="homing()" class="button is-warning is-fullwidth" id="button_holder_homing" >Finish Imaging Session</button>
                     </div>
                   </div>
                 </div>
@@ -142,11 +145,18 @@
               <div class="container">
                <div class="columns">
                  <div class="column">
-                   <p class="pt-3"></p>
+                  <div class="content">
+                    <h3 class="has-text-grey"> Select desired sample position:</h3>
+                    <h4 class="has-text-grey"><b>Step 1: </b> Move slider to desired position.</h4>
+                    <h4 class="has-text-grey"><b>Step 2: </b> Confirm by pressing <b>Set Position</b> button.</h4>
+                  </div>
+                 </div>
+                 <div class="column">
                     <div class="content">
-                      <h4 class="has-text-grey">Usage:</h4>
-                      <h4 class="has-text-grey"> The slider provides an approximation of the position of the <b>TEM Holder</b> as seen on top. By moving the slider with the mouse the position can be set by pressing the <b>Set Position</b>-button.  </h4>
-                      <h4 class="has-text-grey"><b>Important: </b>To precisely move the slider the <b>arrow keys</b> or <b><i id="slider_plus_icon" class="far fa-plus-square fa-xs"></i>/<i id="slider_plus_icon" class="far fa-minus-square fa-xs"></i></b> should be used! </h4>
+                      <h3 class="has-text-grey">  How to finish imaging session: </h3>
+                      <h4 class="has-text-grey"> <b>Step 1: </b>Press <b>Finish Imaging Session</b> button.</h4>
+                      <h4 class="has-text-grey"> <b>Step 2: </b> Disconnect power from holder.</h4>
+                      <h4 class="has-text-grey"> <b>Step 3: </b>Remove holder from microscope.</h4>
                     </div>
                  </div>
                </div>
@@ -162,13 +172,11 @@
               <div class="box">
                 <div class="content is-small">
                    <div class="field">
-                      <h2>Precision Mode (Step Size = 1, default = 10)</h2>
+                      <h2>Precision mode (Step Size = 1, default = 10)</h2>
                       <input id="switch_Precision_Mode" onclick="switch_Precision_Mode()" type="checkbox" checked="checked" name="switchRoundedWarning" class="switch is-rounded is-black">
                       <label for="switch_Precision_Mode"> </label>
-                      <h2>Calibration (<span style="color: red">Info:</span> Calibrate Holder if Position is inaccurate)</h2>
-                      <button onclick="calibrate()" class="button is-black is-outlined" id="button_holder_calibrate" > Calibrate Holder </button>
-                      <h2>Homing (<span style="color: red">Info:</span> Push button before powering off )</h2>
-                      <button onclick="homing()" class="button is-black is-outlined" id="button_holder_homing" > Home Holder </button>
+                      <h2>Calibration (<span style="color: red">Info:</span> Calibrate holder if position is inaccurate)</h2>
+                      <button onclick="calibrate()" class="button is-black is-outlined" id="button_holder_calibrate" > Calibrate holder </button>
                    </div>
                 </div>
               </div>

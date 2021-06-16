@@ -1,20 +1,20 @@
 
 /*************************************************************************************************
  * Global Variables
- * 
+ *
  * ***********************************************************************************************/
 
 // Placeholder/Position where notifications are placed
 var notification_place = 'notification_setting_position';
 
-// Notifications to be sent 
-var notification_msg_setting_position = '<div class="notification is-warning" id="notification_msg_setting_position"> <h3> Setting Holder Position ... </h3><progress class="progress is-medium is-dark" max="100">45%</progress></div>';
+// Notifications to be sent
+var notification_msg_setting_position = '<div class="notification is-warning" id="notification_msg_setting_position"> <h3> Setting holder position ... </h3><progress class="progress is-medium is-dark" max="100">45%</progress></div>';
 var notification_id_setting_position = 'notification_msg_setting_position';
 
-var notification_msg_position_set = '<div class="notification is-success" id="notification_msg_position_set"><h3 class="has-text-white"> Holder Position set!</h3></div>';
+var notification_msg_position_set = '<div class="notification is-success" id="notification_msg_position_set"><h3 class="has-text-white"> Holder position set!</h3></div>';
 var notification_id_position_set = 'notification_msg_position_set';
 
-var notification_msg_position_error = '<div class="notification is-danger" id="notification_msg_position_error"><h3>Something went wrong while setting position!</h3><h3>Holder Reboots! Refresh page afterwards...</h3></div>';
+var notification_msg_position_error = '<div class="notification is-danger" id="notification_msg_position_error"><h3>Something went wrong while setting position!</h3><h3>Holder reboots! Refresh page afterwards...</h3></div>';
 var notification_id_position_error = 'notification_msg_position_error';
 
 var notification_msg_ws_diconnect = '<div class="notification is-danger" id="notification_msg_ws_diconnect"><h3>Server got disconnected! Please refresh the page...</h3></div>';
@@ -26,13 +26,13 @@ var notification_id_calibration = 'notification_msg_calibration';
 var notification_msg_calibration_set = '<div class="notification is-success" id="notification_msg_calibration_set"><h3 class="has-text-white">Holder calibrated successfully!</h3> <h4 class="has-text-white">It is fully operational again ...</h4></div>';
 var notification_id_calibration_set = 'notification_msg_calibration_set';
 
-var notification_msg_calibration_error = '<div class="notification is-danger" id="notification_msg_calibration_error"><h3>Something went wrong while calibrating!</h3><h3>Holder Reboots! Refresh page afterwards...</h3></div>';
+var notification_msg_calibration_error = '<div class="notification is-danger" id="notification_msg_calibration_error"><h3>Something went wrong while calibrating!</h3><h3>Holder reboots! Refresh page afterwards...</h3></div>';
 var notification_id_calibration_error = 'notification_msg_calibration_error';
 
-var notification_msg_homing = '<div class="notification is-warning" id="notification_msg_homing"><h3>Holder is homing!</h3> <h4>Wait for holder to finish ...</h4><progress class="progress is-medium is-dark" max="100">45%</progress></div>';
+var notification_msg_homing = '<div class="notification is-warning" id="notification_msg_homing"><h3>Holder is going to home position!</h3> <h4>Wait for holder to finish ...</h4><progress class="progress is-medium is-dark" max="100">45%</progress></div>';
 var notification_id_homing = 'notification_msg_homing';
 
-var notification_msg_homing_set = '<div class="notification is-success" id="notification_msg_homing_set"><h3 class="has-text-white">Holder is at home position!</h3> <h4 class="has-text-white">Holder can be turned off!</h4></div>';
+var notification_msg_homing_set = '<div class="notification is-success" id="notification_msg_homing_set"><h3 class="has-text-white">Holder is at home position!</h3> <h4 class="has-text-white">Holder can be turned disconnected!</h4></div>';
 var notification_id_homing_set = 'notification_msg_homing_set';
 
 // variable to see if holder is successfully calibrated
@@ -43,12 +43,12 @@ var homingFlag = 0;
 
 /*************************************************************************************************
  * Slider Functionality
- * 
+ *
  *    set_slider_pos():         changes slider position and outputs in on the frontend
  *    set_probe_pos():          sets the check boxes according to slider position
  *    set_arrow_pos():          moves the positioning arrow to the right place
  *    slider_plus_minus_btn():  changes slider position by clicking on plus/minus buttons
- * 
+ *
  * ***********************************************************************************************/
 
 // sets the slider position
@@ -116,7 +116,7 @@ pos_arrow.style.left = (parseFloat(slider.value)-pos_2)*0.15 + '%';
 // plus//minus button on slider functionality
 function slider_plus_minus_btn(plus_minus) {
   var slider = document.getElementById("sliderWithValue");
-  
+
   switch (plus_minus) {
     case 'plus':
       slider.value = parseInt(slider.value) + parseInt(slider.step);
@@ -134,10 +134,10 @@ function slider_plus_minus_btn(plus_minus) {
 
 /*************************************************************************************************
  * Notification Functions
- * 
+ *
  *    addNotification():      adds the requested notification to the status panel
  *    removeNotification():   removes the requested notification from the status panel
- * 
+ *
  * ***********************************************************************************************/
 
 // adds notification to the status panel
@@ -165,14 +165,14 @@ function removeNotification(msg_id){
 
 /*************************************************************************************************
  * Settings Tab Functionality
- * 
+ *
  *    switch_Live_Mode():         Switches between Normal Mode and Live View Mode
  *    switch_Precision_Mode():    Switches between steps of 1 and 10
  *    calibrate():                Enters calibration of Holder
  *    calibrated():               Gets called when calibration has finished
  *    homing():                   Enters homing of Holder
  *    homingDone():               Gets calles when homing process has finished
- * 
+ *
  * ***********************************************************************************************/
 
 // change to Live View Mode
@@ -213,11 +213,11 @@ function calibrate(){
 
   if (confirm("Your about to enter Calibration Mode! Are you sure?")) {
     addNotification(notification_msg_calibration);
-    button.classList += ' is-loading'; 
-    button_holder_set.className += ' is-loading';
-    button_holder_homing.style.visibility = 'hidden';
+    button.classList += ' is-loading';
+    button_holder_set.disabled = true;
+    button_holder_homing.disabled = true;
 
-    var Tx_Json = { "message_type"  :   "STATUS", 
+    var Tx_Json = { "message_type"  :   "STATUS",
                     "data"          :   "calibration"};
     console.log('TX: ' + JSON.stringify(Tx_Json));
     webSocket.send(JSON.stringify(Tx_Json));
@@ -226,7 +226,7 @@ function calibrate(){
   }
 
   calibrationFlag = 0;
-    
+
 }
 
 function calibrated(){
@@ -234,9 +234,9 @@ function calibrated(){
   var button_holder_set = document.getElementById('button_holder_set');
   var button_holder_homing = document.getElementById('button_holder_homing');
 
-  button.classList.remove('is-loading'); 
-  button_holder_set.classList.remove('is-loading');
-  button_holder_homing.style.visibility = "visible";
+  button.classList.remove('is-loading');
+  button_holder_set.disabled = false;
+  button_holder_homing.disabled = false;
 
   removeNotification(notification_id_calibration);
 
@@ -254,11 +254,11 @@ function homing(){
 
   if (confirm("Your about to bring Holder to home position! Are you sure?")) {
     addNotification(notification_msg_homing);
-    button.classList += ' is-loading'; 
-    button_holder_set.className += ' is-loading';
-    button_holder_calibrate.style.visibility = 'hidden';
+    button.classList += ' is-loading';
+    button_holder_set.disabled = true;
+    button_holder_calibrate.disabled = true;
 
-    var Tx_Json = { "message_type"  :   "STATUS", 
+    var Tx_Json = { "message_type"  :   "STATUS",
                     "data"          :   "homing"};
 
     console.log('TX: ' + JSON.stringify(Tx_Json));
@@ -268,7 +268,7 @@ function homing(){
   }
 
   homingFlag = 0;
-  
+
 }
 
 function homingDone(){
@@ -276,9 +276,9 @@ function homingDone(){
   var button_holder_set = document.getElementById('button_holder_set');
   var button_holder_calibrate = document.getElementById('button_holder_calibrate');
 
-  button.classList.remove('is-loading'); 
-  button_holder_set.classList.remove('is-loading');
-  button_holder_calibrate.style.visibility = 'visible';
+  button.classList.remove('is-loading');
+  button_holder_set.disabled = false;
+  button_holder_calibrate.disabled = false;
 
   removeNotification(notification_id_homing);
 
@@ -292,12 +292,12 @@ function homingDone(){
 /*************************************************************************************************
  * RX Message Handlers
  *    All Messages are sent in the standardized JSON format!
- * 
+ *
  *    get_message_handler():      sorting function for incomming messages from the Websocket
  *    get_position_handler():     receives current holder position and displays it on all clients
  *    get_ack_handler():          wait for an ack from the server/holder
  *    get_status_handler():        receives messages from the server/holder and acts accordingly
- * 
+ *
  * ***********************************************************************************************/
 
 // When a new message from websocket is received they get sorted here
@@ -320,7 +320,7 @@ function get_message_handler(event){
     default:
       break;
   }
-    
+
 }
 
 // Position Handler: Receives current position on all clients
@@ -337,7 +337,12 @@ function get_ack_handler(data){
     case "SET":
       removeNotification(notification_id_setting_position);
       var button = document.getElementById('button_holder_set');
+      var button_holder_homing = document.getElementById('button_holder_homing');
+      var button_holder_calibrate = document.getElementById('button_holder_calibrate');
+      
       button.classList.remove("is-loading");
+      button_holder_homing.disabled = false;
+      button_holder_calibrate.disabled = false;
 
       addNotification(notification_msg_position_set);
       setTimeout(function(){
@@ -379,22 +384,26 @@ function get_status_handler(data){
 
 /*************************************************************************************************
  * Tx Message Handlers
- * 
+ *
  *    set_holder_pos():         sets the holder position and sends the position to backend on button press
- * 
+ *
  * ***********************************************************************************************/
 
 //Sets holder position, sends toast/notification and sends desired holder position to backend
 function set_holder_pos(){
   var button = document.getElementById('button_holder_set');
   var value = document.getElementById('sliderWithValue').value; // slider value
+  var button_holder_homing = document.getElementById('button_holder_homing');
+  var button_holder_calibrate = document.getElementById('button_holder_calibrate');
 
   button.className += " is-loading";
+  button_holder_homing.disabled = true;
+  button_holder_calibrate.disabled = true;
   addNotification(notification_msg_setting_position);
 
-  var Tx_Json = { "message_type" : "POSITION", 
+  var Tx_Json = { "message_type" : "POSITION",
                   "data" : value};
-  
+
   console.log(value);
   console.log("TX: " + JSON.stringify(Tx_Json)); // prints json string to console
 

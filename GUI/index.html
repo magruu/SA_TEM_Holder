@@ -9,316 +9,189 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.0.0/animate.min.css"/>
     <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css" integrity="sha384-AYmEC3Yw5cVb3ZcuHtOA93w35dYTsvhLPVnYs9eStHfGJvOvKxVfELGroGkvsg+p" crossorigin="anonymous"/>
 
+    <!-- own  stylesheet -->
+    <link rel="stylesheet" href="/style.css">
+    <!-- Placeholder for own dynamic stylesheet-->
+    <style id="myStyle"></style>
+
+    <!-- bulma extension javascript -->
+    <script src="https://cdn.jsdelivr.net/npm/bulma-extensions@6.2.7/dist/js/bulma-extensions.min.js"></script>
+
+    <!-- jQuery javascript -->
+    <!-- <script src="https://code.jquery.com/jquery-3.5.0.js"></script> -->
+
+    <!-- own javascript bits -->
+    <script src="/script.js"></script>
+
+    <!-- Javascipt bits that have to be called here-->
+    <script>
+
+      // Websocket Functionality
+      var address = window.location.hostname;
+      var webSocket = new WebSocket("ws://"+address+"/ws");
+
+      webSocket.onmessage = function(event) {
+        //console.log(event.data);
+        get_message_handler(event);
+      }
+
+      webSocket.onopen = function(event) {
+        console.log("Connection opened!");
+        removeNotification(notification_id_ws_diconnect);
+      }
+
+      webSocket.onclose = function(event) {
+        console.log("Disconnected client");
+        addNotification(notification_msg_ws_diconnect);
+      }
+
+
+    </script>
+
   </head>
 
   <body>
+  <!-- Title section -->
+    <section class="section pb-0">
+      <div class="container">
+        <div class="box content ">
 
-<!-- Title section -->
+          <h1> <b>Automatic multi-sample TEM-Holder </b> <p class="has-text-right" style="font-size: 15px;"> by Marco Failla </p></h1>
 
-  <section class="section pb-0">
-    <div class="container">
-      <div class="box content ">
-
-        <h1> Automatic <b>TEM-Holder</b> for your FEI Talos  <p class="has-text-right" style="font-size: 15px;"> by Marco Failla </p></h1>
-
+        </div>
       </div>
-    </div>
 
-  </section>
+    </section>
 
-<!-- Content Section -->
+  <!-- Content Section -->
 
-  <section class="section">
-    <div class="container">
-      <div class="columns is-centered">
+    <section class="section">
+      <div class="container">
+        <div class="columns is-centered">
 
-      <!-- Positioning Section -->
-        <!-- slider and image-->
-        <div class="column content is-left  is-half ">
-          <h2>Position</h2>
-          <div class="box content is-small">
+        <!-- Positioning Section -->
+          <!-- Image and Positioning Arrow-->
+          <div class="column content is-left  is-half ">
+            <h2>Position</h2>
+            <div class="box content is-small">
 
-              <div class="container mb-0" >
-                <figure class="image" style="overflow: hidden; display: block; margin-left: auto; margin-right: auto; width: 80%;" >
-                  <img  class="has-ratio" width="200" src="/img/TemHolder_Graphic_Horizontal_ohne_text.png" frameborder="0" allowfullscreen></img>
-                </figure>
+                <div class="container mb-0" >
+                  <figure class="image" style="overflow: hidden; display: block; margin-left: auto; margin-right: auto; width: 80%;" >
+                    <img  class="has-ratio" width="200" src="https://i.ibb.co/94xXD2t/Tem-Holder-Graphic-Horizontal-ohne-text-v2-1.png" frameborder="0" allowfullscreen></img>
+                  </figure>
 
-                <figure class="image is-32x32" id="arrow_position" style="position: relative; bottom:10px; display: block; margin-left: auto; margin-right: auto;" >
-                  <img  src="/img/arrow_40x27_red.png" frameborder="0" ></img>
-                </figure>
-              </div>
-
-
-
-      <!-- Slider Row -->
-            <div class="columns is-centered is-mobile">
-
-          <!-- Plus Minus Buttons -->
-              <div class="column is-1">
-                <div class="content container">
-                  <div class="columns is-centered pt-3 pb-2">
-                    <span onclick="slider_plus()"><i id="slider_plus_icon" class="far fa-plus-square fa-2x slider_button"></i></span>
-                  </div>
-                  <div class="columns is-centered">
-                    <span onclick="slider_minus()"><i id="slider_minus_icon" class="far fa-minus-square fa-2x slider_button"></i></span>
-                  </div>
-                </div>
-              </div>
-
-          <!-- Slider -->
-              <div class="column is-11">
-                <input id="sliderWithValue" oninput="slider_change()" class="slider has-output is-fullwidth" min="0" max="400" value="200" step="10" type="range">
-                <output for="sliderWithValue" id="value">200</output>
-              </div>
-
-            </div>
-
-        <!-- Position 1/2/3 Buttons -->
-            <div class="columns is-centered">
-
-                <div class="content column is-one-third">
-                  <input class="is-checkradio is-success" id="Probe_Pos_1" type="radio" name="RadioInline">
-                  <label for="Probe_Pos_1"> <b>Pos. 1</b> </label>
-                </div>
-                <div class="content column is-one-third">
-                  <input class="is-checkradio is-success" id="Probe_Pos_2" type="radio" name="RadioInline" checked="checked">
-                  <label for="Probe_Pos_2"><b>Pos. 2</b></label>
-                </div>
-                <div class="content column is-one-third">
-                  <input class="is-checkradio is-success" id="Probe_Pos_3" type="radio" name="RadioInline">
-                  <label for="Probe_Pos_3"><b>Pos. 3</b></label>
+                  <figure class="image is-32x32" id="arrow_position" style="position: relative; bottom:10px; display: block; margin-left: auto; margin-right: auto;" >
+                    <img  src="https://i.ibb.co/z8J9ZMS/arrow-40x27-red.png" frameborder="0" ></img>
+                  </figure>
                 </div>
 
-            </div>
-        <!-- Positioning Button -->
-            <div class="columns is-centered">
-              <div class="container ">
-                <div class="columns">
-                  <div class="column ">
-                      <button class="button is-black is-fullwidth" id="button_holder_set" > Set Position</button>
+
+
+        <!-- Slider Row -->
+              <div class="columns is-centered is-mobile">
+
+            <!-- Plus Minus Buttons -->
+                <div class="column is-1">
+                  <div class="content container">
+                    <div class="columns is-centered pt-3 pb-2">
+                      <span onclick="slider_plus_minus_btn('plus')"><i id="slider_plus_icon" class="far fa-plus-square fa-2x slider_button"></i></span>
+                    </div>
+                    <div class="columns is-centered">
+                      <span onclick="slider_plus_minus_btn('minus')"><i id="slider_minus_icon" class="far fa-minus-square fa-2x slider_button"></i></span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
 
-        <!-- Info Tab -->
-            <div class="container">
-             <div class="columns">
-               <div class="column">
-                 <p class="pt-3"></p>
+            <!-- Slider -->
+                <div class="column is-11">
+                  <input id="sliderWithValue" oninput="set_slider_pos()" class="slider has-output is-fullwidth" min="0" max="400" value="200" step="1" type="range">
+                  <output for="sliderWithValue" id="value">200</output>
+                </div>
+
+              </div>
+
+          <!-- Position 1/2/3 Checkboxes -->
+              <div class="columns is-centered">
+
+                  <div class="content column is-one-third">
+                    <input class="is-checkradio is-success" id="Probe_Pos_1" onclick="set_probe_pos(id)" type="radio" name="RadioInline">
+                    <label for="Probe_Pos_1"> <b>Pos. 1</b> </label>
+                  </div>
+                  <div class="content column is-one-third">
+                    <input class="is-checkradio is-success" id="Probe_Pos_2" onclick="set_probe_pos(id)" type="radio" name="RadioInline" checked="checked">
+                    <label for="Probe_Pos_2"><b>Pos. 2</b></label>
+                  </div>
+                  <div class="content column is-one-third">
+                    <input class="is-checkradio is-success" id="Probe_Pos_3" onclick="set_probe_pos(id)" type="radio" name="RadioInline">
+                    <label for="Probe_Pos_3"><b>Pos. 3</b></label>
+                  </div>
+
+              </div>
+          <!-- Positioning Button -->
+              <div class="columns is-centered">
+                <div class="container ">
+                  <div class="columns">
+                    <div class="column ">
+                        <button onclick="set_holder_pos()" class="button is-success is-fullwidth" id="button_holder_set" >Set Position</button>
+                    </div>
+                    <div class="column ">
+                        <button onclick="homing()" class="button is-info is-fullwidth" id="button_holder_homing" >Finish Imaging Session</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+          <!-- Info Tab -->
+              <div class="container">
+               <div class="columns">
+                 <div class="column">
                   <div class="content">
-                    <h4 class="has-text-grey">Usage:</h4>
-                    <h4 class="has-text-grey"> The slider provides an approximation of the position of the <b>TEM Holder</b> as seen on the left side. By moving the slider with the mouse the position can be set.  </h4>
-                    <h4 class="has-text-grey"><b>Important: </b>To precisely move the slider the <b>arrow keys</b> or <b><i id="slider_plus_icon" class="far fa-plus-square fa-xs"></i>/<i id="slider_plus_icon" class="far fa-minus-square fa-xs"></i></b> should be used! </h4>
+                    <h3 class="has-text-grey"> Select desired sample position:</h3>
+                    <h4 class="has-text-grey"><b>Step 1: </b> Move slider to desired position.</h4>
+                    <h4 class="has-text-grey"><b>Step 2: </b> Confirm by pressing <b>Set Position</b> button.</h4>
                   </div>
-               </div>
-             </div>
-            </div>
-
-          </div>
-        </div>
-
-        <!-- Settings Tab -->
-        <div class="column  is-half ">
-          <div class="content">
-            <h2>Settings</h2>
-            <div class="box">
-              <div class="content is-small">
-                 <div class="field">
-                   <h2>Live View Mode (<span style="color: red">Beta-Feature:</span> use at your own risk)</h2>
-                   <input id="switch_Live_Mode" type="checkbox" name="switchRoundedWarning" class="switch is-rounded is-black">
-                   <label for="switch_Live_Mode"> </label>
-                   <h2>Precision Mode (Step Size = 1, default = 10)</h2>
-                   <input id="switch_Precision_Mode" type="checkbox" name="switchRoundedWarning" class="switch is-rounded is-black">
-                   <label for="switch_Precision_Mode"> </label>
                  </div>
+                 <div class="column">
+                    <div class="content">
+                      <h3 class="has-text-grey">  How to finish imaging session: </h3>
+                      <h4 class="has-text-grey"> <b>Step 1: </b>Press <b>Finish Imaging Session</b> button.</h4>
+                      <h4 class="has-text-grey"> <b>Step 2: </b> Disconnect power from holder.</h4>
+                      <h4 class="has-text-grey"> <b>Step 3: </b>Remove holder from microscope.</h4>
+                    </div>
+                 </div>
+               </div>
               </div>
-            </div>
-            <div class="content">
-             <h2>Status Feedback</h2>
-            </div>
-            <div class="content is-small" id="notification_setting_position">
 
+            </div>
+          </div>
+
+          <!-- Settings Tab -->
+          <div class="column  is-half ">
+            <div class="content">
+              <h2>Settings</h2>
+              <div class="box">
+                <div class="content is-small">
+                   <div class="field">
+                      <h2>Precision mode (Step Size = 1, default = 10)</h2>
+                      <input id="switch_Precision_Mode" onclick="switch_Precision_Mode()" type="checkbox" checked="checked" name="switchRoundedWarning" class="switch is-rounded is-black">
+                      <label for="switch_Precision_Mode"> </label>
+                      <h2>Calibration (<span style="color: red">Info:</span> Calibrate holder if position is inaccurate)</h2>
+                      <button onclick="calibrate()" class="button is-black is-outlined" id="button_holder_calibrate" > Calibrate holder </button>
+                   </div>
+                </div>
+              </div>
+              <div class="content">
+               <h2>Status Feedback</h2>
+              </div>
+              <div class="content is-small" id="notification_setting_position">
+
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
   </body>
-
-<!-- Javascript bits -->
-
-  <!-- bulma extension javascript -->
-  <script src="https://cdn.jsdelivr.net/npm/bulma-extensions@6.2.7/dist/js/bulma-extensions.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bulma-toast@2.3.0/dist/bulma-toast.min.js"></script>
-
-  <!-- slider value functionality -->
-  <script type="text/javascript">
-    var slider = document.getElementById("sliderWithValue");
-    var output = document.getElementById('value');
-
-    var probe_pos = document.getElementsByName("RadioInline");
-    var probe_pos_1 = document.getElementById("Probe_Pos_1");
-    var probe_pos_2 = document.getElementById("Probe_Pos_2");
-    var probe_pos_3 = document.getElementById("Probe_Pos_3");
-
-    var pos_1 = parseInt(slider.min) + 50;
-    var pos_2 = (slider.max - slider.min)/2;
-    var pos_3 = slider.max - 50;
-
-    var pos_arrow = document.getElementById("arrow_position");
-
-    var plus_btn = document.getElementById("slider_plus_icon");
-    var minus_btn = document.getElementById("slider_minus_icon");
-
-
-    probe_pos_3.onclick = function(){
-        slider.value = pos_3;
-        output.innerHTML = slider.value;
-        arrow_function();
-    }
-
-    probe_pos_2.onclick = function(){
-        slider.value = pos_2;
-        output.innerHTML = slider.value;
-        arrow_function();
-    }
-
-    probe_pos_1.onclick = function(){
-        slider.value = pos_1;
-        output.innerHTML = slider.value;
-        arrow_function();
-    }
-
-
-    output.innerHTML = slider.value;
-
-    slider_change = function(){
-      output.innerHTML = slider.value;
-
-      if(slider.value > (pos_3+pos_2)/2){
-        probe_pos_3.checked = true;
-      } else if(slider.value < ((pos_1+pos_2)/2)){
-        probe_pos_1.checked = true;
-      } else {
-        probe_pos_2.checked = true;
-      }
-      arrow_function();
-    }
-
-    slider_plus = function(){
-      slider.value = parseInt(slider.value) + parseInt(slider.step);
-      output.innerHTML = slider.value;
-      arrow_function();
-      slider_change();
-    }
-
-    slider_minus = function(){
-      slider.value = parseInt(slider.value) - parseInt(slider.step);
-      output.innerHTML = slider.value;
-      arrow_function();
-      slider_change();
-    }
-
-    arrow_function = function(){
-      pos_arrow.style.left = (parseFloat(slider.value)-pos_2)*60/400 + "%";
-    }
-
-  </script>
-
-  <!-- set holder position and send toast/notification-->
-  <script type="text/javascript">
-    var button = document.getElementById('button_holder_set');
-    var notification_setting = document.getElementById('notification_setting_position');
-
-    var notification_msg_setting_position = '<div class="notification is-warning" id="notification"> <h3> Setting Holder Position ... </h3><progress class="progress is-medium is-dark" max="100">45%</progress></div>';
-    var notification_msg_position_set = '<div class="notification is-success" id="notification"><h3 class="has-text-white"> Holder Position set!</h3></div>';
-    var position_set;
-
-
-    button.onclick = function(){
-      //button.disabled = true;
-      button.className += " is-loading";
-      addNotifcation('notification_setting_position', notification_msg_setting_position);
-    }
-
-    if(position_set == true){
-      addNotifcation('notification_setting_position', notification_msg_position_set);
-    }
-
-    function addNotifcation(id, msg) {
-       const  div = document.getElementById(id);
-       if(msg == notification_msg_setting_position){
-         div.innerHTML += msg;
-       } else if(msg == notification_msg_position_set){
-         div.innerHTML += msg;
-       }
-
-       newdiv = document.getElementById("notification");
-       setTimeout(function(){
-         newdiv.style.opacity = '0';
-         newdiv.addEventListener('transitionend', () => newdiv.remove());
-
-         setTimeout(function(){button.classList.remove("is-loading");},500);
-
-       }, 4000);
-      }
-
-  </script>
-
-  <!-- switch functionality -->
-  <script type="text/javascript">
-      var switch_Live_Mode = document.getElementById('switch_Live_Mode');
-      var button_holder_set = document.getElementById('button_holder_set');
-      var switch_Precision_Mode = document.getElementById('switch_Precision_Mode');
-      var slider = document.getElementById("sliderWithValue");
-
-      switch_Live_Mode.oninput = function(){
-        if(switch_Live_Mode.checked == true){
-          button_holder_set.style.visibility = "hidden";
-        } else {
-          button_holder_set.style.visibility = "visible";
-        }
-      }
-
-      switch_Precision_Mode.oninput = function(){
-        if(switch_Precision_Mode.checked == true){
-          slider.step= 1;
-        } else {
-          slider.step= 10;
-        }
-      }
-
-  </script>
-
-  <!-- delete notification functionality -->
-  <script type="text/javascript">
-  document.addEventListener('DOMContentLoaded', () => {
-      (document.querySelectorAll('.notification .delete') || []).forEach(($delete) => {
-            const $notification = $delete.parentNode;
-
-            $delete.addEventListener('click', () => {
-              $notification.parentNode.removeChild($notification);
-            });
-          });
-      });
-  </script>
-
-
-  <style media="screen">
-    #notification {
-        transition: opacity 0.5s;
-    }
-
-    .slider_button{
-      color: grey;
-    }
-
-    .slider_button:hover{
-      color: #23D160;
-    }
-  </style>
 
 </html>

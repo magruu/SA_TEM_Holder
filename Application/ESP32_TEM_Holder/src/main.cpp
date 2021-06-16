@@ -14,11 +14,11 @@
 // const char* ssid = "NETGEAR";
 // const char* password = "mhsi12jaia";
 
-const char* ssid = "MagruuFi";
-const char* password = "kayabanana";
+// const char* ssid = "MagruuFi";
+// const char* password = "kayabanana";
 
-// const char* ssid = "ZMB-Y42F54-WIFI"; // ZMB Credentials
-// const char* password = "jumbo8+Cloud";
+const char* ssid = "ZMB-Y42F54-WIFI"; // ZMB Credentials
+const char* password = "jumbo8+Cloud";
 
 /*************************************************************************************************
  * User Global Variables
@@ -167,7 +167,12 @@ void controlPosition(){
 
 void setPosition(uint32_t position){
 
-  desiredPosition = position/MAX_HOLDER_VALUE * maxPosition;
+  
+  if(position < 40){
+    desiredPosition = 0;
+  } else {
+    desiredPosition = (position-40)/MAX_HOLDER_VALUE * maxPosition;
+  }
   if (currentPosition < desiredPosition){
     driver.SGTHRS(STALL_VALUE_RIGHT);
     driver.shaft(right);

@@ -273,7 +273,7 @@ void calibratePosition(){
 
 void homePosition(){
   Serial.println("Homing Initiated!");
-  uint32_t homePosition = minPosition + 20.0/MAX_HOLDER_VALUE * maxPosition;
+  uint32_t homePosition = minPosition + 20.0;
   setPosition(homePosition);
 }
 

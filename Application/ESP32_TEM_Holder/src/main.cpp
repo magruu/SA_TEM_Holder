@@ -219,8 +219,8 @@ void calibratePosition(){
   while(true){
 
     uint32_t ms = millis();
-    // if no Diag Signal after 5s something went wrong
-    if((ms-last_time) > 15000) { //run every 10s
+    // if no Diag Signal after 15s something went wrong
+    if((ms-last_time) > 15000) { //run every 15s
       last_time = ms;
 
       Tx_Doc["message_type"] = "STATUS";
@@ -256,7 +256,7 @@ void calibratePosition(){
   while(true){
 
     uint32_t ms = millis();
-    // if no Diag Signal after 5s something went wrong
+    // if no Diag Signal after 15s something went wrong
     if((ms-last_time) > 15000) { //run every 15s
       last_time = ms;
 
@@ -296,13 +296,12 @@ void calibratePosition(){
 
 void homePosition(){
   Serial.println("Homing Initiated!");
-  uint32_t homePosition = minPosition + 20.0;
+  uint32_t homePosition = HOME_HOLDER_VALUE;
   setPosition(homePosition);
 }
 
 // Callback function when timer elapsed
 void IRAM_ATTR onTimer() {
-
   controlPosition();
 } 
 
@@ -330,20 +329,8 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
     const char* expression = (const char*)Rx_Doc["message_type"];
 
     if(!strcmp(expression, "POSITION")){ 
-
       rawDesiredPosition = (uint32_t)Rx_Doc["data"];
       state = setting;
-      
-      // Serial.println("Setting Position on all Clients");
-      // Tx_Doc["message_type"] = "POSITION";
-      // Tx_Doc["data"] = Rx_Doc["data"];
-      // serializeJson(Tx_Doc, Tx_Json);
-      // Serial.print("TX :");
-      // Serial.println(Tx_Json);
-      // ws.textAll(Tx_Json);
-
-      // Tx_Json.clear();
-
     }else if(!strcmp(expression, "ACK")){
 
     }else if(!strcmp(expression, "STATUS")){

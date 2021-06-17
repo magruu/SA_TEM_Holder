@@ -442,7 +442,11 @@ void setup(){
   //timerAlarmEnable(timer1);    //Enable timer        
   sei();//allow interrupts
 
+  // Calibrate the holder at each startup
   calibratePosition();
+
+  // Set Position 1 as default position
+  setPosition(POS_1_HOLDER_FRONTEND_VALUE);
 
   // Connect to Wi-Fi
   WiFi.begin(ssid, password);

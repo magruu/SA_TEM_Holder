@@ -32,7 +32,7 @@ var notification_id_calibration_error = 'notification_msg_calibration_error';
 var notification_msg_homing = '<div class="notification is-warning" id="notification_msg_homing"><h3>Holder is going to home position!</h3> <h4>Wait for holder to finish ...</h4><progress class="progress is-medium is-dark" max="100">45%</progress></div>';
 var notification_id_homing = 'notification_msg_homing';
 
-var notification_msg_homing_set = '<div class="notification is-success" id="notification_msg_homing_set"><h3 class="has-text-white">Holder is at home position!</h3> <h4 class="has-text-white">Holder can be turned disconnected!</h4></div>';
+var notification_msg_homing_set = '<div class="notification is-success" id="notification_msg_homing_set"><h3 class="has-text-white">Holder is at home position!</h3> <h4 class="has-text-white">Holder can be disconnected from power!</h4></div>';
 var notification_id_homing_set = 'notification_msg_homing_set';
 
 // variable to see if holder is successfully calibrated

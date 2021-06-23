@@ -531,7 +531,7 @@ void loop(){
 
         Tx_Json.clear();
   }else if(state == setting){
-      setPosition(rawDesiredPosition);
+      setPosition(rawDesiredPosition); // actual function call
 
       uint32_t last_time=millis();
       while(positionFlag != FLAG_SET){ // Wait for holder to reach desiredPosition
@@ -541,6 +541,7 @@ void loop(){
         if((ms-last_time) > 15000) { //run every 15s
           last_time = ms;
 
+          // Error messsage
           Tx_Doc["message_type"] = "STATUS";
           Tx_Doc["data"] = "positioning error";
           serializeJson(Tx_Doc, Tx_Json);
@@ -555,8 +556,9 @@ void loop(){
       }  
 
       positionFlag = FLAG_UNSET;   // Unset the positonFlag variable
-      state = normal;
+      state = normal; // change state back to normal
 
+      // Send positive notification 
       Serial.println("Got Position! Sending Ack");
       Tx_Doc["message_type"] = "ACK";
       Tx_Doc["data"] = "SET";

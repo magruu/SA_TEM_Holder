@@ -1,8 +1,8 @@
 
-/*************************************************************************************************
+/********************************************************
  * Global Variables
  *
- * ***********************************************************************************************/
+ * *******************************************************/
 
 // Placeholder/Position where notifications are placed
 var notification_place = 'notification_setting_position';
@@ -41,7 +41,7 @@ var calibrationFlag = 0;
 // variable to see if holder is successfully homed
 var homingFlag = 0;
 
-/*************************************************************************************************
+/********************************************************
  * Slider Functionality
  *
  *    set_slider_pos():         changes slider position and outputs in on the frontend
@@ -49,7 +49,7 @@ var homingFlag = 0;
  *    set_arrow_pos():          moves the positioning arrow to the right place
  *    slider_plus_minus_btn():  changes slider position by clicking on plus/minus buttons
  *
- * ***********************************************************************************************/
+ * *******************************************************/
 
 // sets the slider position
 function set_slider_pos(){
@@ -132,13 +132,13 @@ function slider_plus_minus_btn(plus_minus) {
 }
 
 
-/*************************************************************************************************
+/********************************************************
  * Notification Functions
  *
  *    addNotification():      adds the requested notification to the status panel
  *    removeNotification():   removes the requested notification from the status panel
  *
- * ***********************************************************************************************/
+ * *******************************************************/
 
 // adds notification to the status panel
 function addNotification(message) {
@@ -163,7 +163,7 @@ function removeNotification(msg_id){
 }
 
 
-/*************************************************************************************************
+/********************************************************
  * Settings Tab Functionality
  *
  *    switch_Live_Mode():         Switches between Normal Mode and Live View Mode
@@ -173,7 +173,7 @@ function removeNotification(msg_id){
  *    homing():                   Enters homing of Holder
  *    homingDone():               Gets calles when homing process has finished
  *
- * ***********************************************************************************************/
+ * *******************************************************/
 
 // change to Live View Mode
 function switch_Live_Mode(){
@@ -289,7 +289,7 @@ function homingDone(){
 
 }
 
-/*************************************************************************************************
+/********************************************************
  * RX Message Handlers
  *    All Messages are sent in the standardized JSON format!
  *
@@ -298,7 +298,7 @@ function homingDone(){
  *    get_ack_handler():          wait for an ack from the server/holder
  *    get_status_handler():        receives messages from the server/holder and acts accordingly
  *
- * ***********************************************************************************************/
+ * *******************************************************/
 
 // When a new message from websocket is received they get sorted here
 function get_message_handler(event){
@@ -383,12 +383,12 @@ function get_status_handler(data){
 }
 
 
-/*************************************************************************************************
+/********************************************************
  * Tx Message Handlers
  *
  *    set_holder_pos():         sets the holder position and sends the position to backend on button press
  *
- * ***********************************************************************************************/
+ * *******************************************************/
 
 //Sets holder position, sends toast/notification and sends desired holder position to backend
 function set_holder_pos(){

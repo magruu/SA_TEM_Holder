@@ -6,10 +6,11 @@
 #include <ArduinoJson.h>
 #include <TMCStepper.h>
 
-/*************************************************************************************************
+/* *******************************************************
+ *
  * Network Credentials
  * 
- * ***********************************************************************************************/
+ * *******************************************************/
 
 // const char* ssid = "NETGEAR";
 // const char* password = "mhsi12jaia";
@@ -20,10 +21,10 @@
 const char* ssid = "ZMB-Y42F54-WIFI"; // ZMB Credentials
 const char* password = "jumbo8+Cloud";
 
-/*************************************************************************************************
+/********************************************************
  * User Global Variables
  * 
- * ***********************************************************************************************/
+ * *******************************************************/
 
 #define EEPROM_SIZE      7  // define the number of bytes you want to access
 
@@ -55,20 +56,20 @@ enum State {normal, calibration, setting, homing};
 
 State state = calibration;
 
-/*************************************************************************************************
+/********************************************************
  * Initialize JSON element
  * 
- * ***********************************************************************************************/
+ * *******************************************************/
 
 DynamicJsonDocument Tx_Doc(1024);   //Library Variable for Json
 DynamicJsonDocument Rx_Doc(1024);   //Library Variable for Json
 String Tx_Json;                     //Json-ized String
 String Rx_Json;                     //Json-ized String
 
-/*************************************************************************************************
+/********************************************************
  * Motor Parameter
  * 
- * ***********************************************************************************************/
+ * *******************************************************/
 
 //For Small Motor there is a signifcant difference between turning directions
 
@@ -91,10 +92,10 @@ String Rx_Json;                     //Json-ized String
 #define FULL_STEPS_ROTATION 200 // Number of Full Steps for one rotation
 #define MICROSTEPS_RESOLUTION 16 // Makes 1 Full Step with the defined number of microsteps
 
-/*************************************************************************************************
+/********************************************************
  * Holder Parameters
  * 
- * ***********************************************************************************************/
+ * *******************************************************/
 
 // This values are corresponding values to the frontend
 #define MIN_HOLDER_FRONTEND_VALUE          0.0
@@ -112,28 +113,28 @@ String Rx_Json;                     //Json-ized String
 
 #define HOME_HOLDER_VALUE               POS_1_HOLDER_FRONTEND_VALUE
 
-/*************************************************************************************************
+/********************************************************
  * Initialize Stepper Motor Driver
  * 
- * ***********************************************************************************************/
+ * *******************************************************/
 
 TMC2209Stepper driver(&SERIAL_PORT, R_SENSE, DRIVER_ADDRESS);
 
 using namespace TMC2209_n;
 
-/*************************************************************************************************
+/********************************************************
  * Initialize Webserver & Websocket
  * 
  *    Asyncwebserver: multiple clients and async functionality
  *    Websocket:      communication library between client and server  
  * 
- * ***********************************************************************************************/
+ * ********************************************************/
 
 AsyncWebServer server(80); // Create AsyncWebServer object on port 80
 
 AsyncWebSocket ws("/ws"); // Create WebSocketServer (usually on port 81)
 
-/*************************************************************************************************
+/********************************************************
  * User Functions
  *    
  *    controlPosition():  this function is called in the periodic timer ISR, it gets called to see 
@@ -142,7 +143,7 @@ AsyncWebSocket ws("/ws"); // Create WebSocketServer (usually on port 81)
  *                         Is done on startup, but can be called by user
  *    setPosition():      converts the desiredPosition from values of 0 to MAX_HOLDER_FRONTEND_VALUE (on the GUI) to values of the internal map
  *    
- * ***********************************************************************************************/
+ * *******************************************************/
 
 void controlPosition(){
   digitalWrite(STEP_PIN, !digitalRead(STEP_PIN));
@@ -300,13 +301,13 @@ void IRAM_ATTR onTimer() {
 } 
 
 
-/*************************************************************************************************
+/********************************************************
  * Websocket Functions
  * 
  *    handleWebSocketMessage():   handles incomming messages from the Websocket/Client  
  *    onEvent():                  Gets called when an event occurs on the WebSocket
  * 
- * ***********************************************************************************************/
+ * *******************************************************/
 
 // Handles the received message
 void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
@@ -368,12 +369,12 @@ void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType 
   }
 }
 
-/*************************************************************************************************
+/********************************************************
  * Arduino Setup Function
  * 
  *    Used as initialization function for the used libraries and functionalities
  * 
- * ***********************************************************************************************/
+ * *******************************************************/
 
 void setup(){
   // Serial port for debugging purposes
@@ -484,12 +485,12 @@ void setup(){
 
 }
  
-/*************************************************************************************************
+/********************************************************
  * Arduino Loop Function
  * 
  *    Infinite loop for controlling the holder
  * 
- * ***********************************************************************************************/
+ * *******************************************************/
 
 void loop(){
   ws.cleanupClients();

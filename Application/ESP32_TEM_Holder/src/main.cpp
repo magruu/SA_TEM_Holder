@@ -52,7 +52,7 @@ uint32_t maxPosition;
 
 enum Direction {left = 1, right = 0};
 
-enum State {normal, calibration, setting, homing};
+enum State {normal, calibration, setting, homing, startup};
 
 State state = calibration;
 
@@ -173,6 +173,13 @@ void controlPosition(){
       break;
     case calibration:
       ++currentPosition;
+      break;
+    case startup:
+      if (currentPosition < desiredPosition){
+        ++currentPosition;
+      } else if(currentPosition > desiredPosition){
+        --currentPosition;
+      }
       break;
     case normal:
       break;
@@ -352,7 +359,7 @@ void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType 
     case WS_EVT_CONNECT:    // New client connected 
       Serial.printf("WebSocket client #%u connected from %s\n", client->id(), client->remoteIP().toString().c_str());
       Tx_Doc["message_type"] = "POSITION";
-      Tx_Doc["data"] = currentPosition;
+      Tx_Doc["data"] = rawDesiredPosition;
       serializeJson(Tx_Doc, Tx_Json);
       ws.text(client->id(), Tx_Json);
       Tx_Json.clear();
@@ -362,8 +369,14 @@ void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType 
       break;
     case WS_EVT_DATA:       // Data was received
       handleWebSocketMessage(arg, data, len);
+      Tx_Doc["message_type"] = "POSITION";
+      Tx_Doc["data"] = rawDesiredPosition;
+      serializeJson(Tx_Doc, Tx_Json);
+      ws.textAll( Tx_Json);
+      Tx_Json.clear();
       break;
     case WS_EVT_PONG:       // Pong request
+      break;
     case WS_EVT_ERROR:      // Error 
       break;
   }
@@ -446,15 +459,16 @@ void setup(){
   // Calibrate the holder at each startup
   calibratePosition();
 
-  // Set Position 1 as default position
-  setPosition(POS_1_HOLDER_FRONTEND_VALUE);
-
   // Connect to Wi-Fi
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
     delay(1000);
     Serial.println("Connecting to WiFi..");
   }
+
+  // Set Startup state
+  state = startup;
+  rawDesiredPosition = POS_1_HOLDER_FRONTEND_VALUE;
 
   // Print ESP32 Local IP Address
   Serial.print("Wifi Connected with IP: ");
@@ -568,7 +582,6 @@ void loop(){
       Serial.println(Tx_Json);
       ws.textAll(Tx_Json);
       Tx_Json.clear();
-
   }else if (state == homing){
       setPosition(HOME_HOLDER_VALUE);
 
@@ -604,6 +617,43 @@ void loop(){
       Serial.println(Tx_Json);
       ws.textAll(Tx_Json);
       Tx_Json.clear();  
+  } else if (state == startup){
+      setPosition(POS_1_HOLDER_FRONTEND_VALUE); // actual function call
+
+      uint32_t last_time=millis();
+      while(positionFlag != FLAG_SET){ // Wait for holder to reach desiredPosition
+        
+        uint32_t ms = millis();
+        // if position is not set after 15s something went wrong
+        if((ms-last_time) > 15000) { //run every 15s
+          last_time = ms;
+
+          // Error messsage
+          Tx_Doc["message_type"] = "STATUS";
+          Tx_Doc["data"] = "positioning error";
+          serializeJson(Tx_Doc, Tx_Json);
+          Serial.print("TX :");
+          Serial.println(Tx_Json);
+          ws.textAll(Tx_Json);
+          Tx_Json.clear();
+          Serial.println("Something went wrong while setting the position, holder reboots!");
+          delay(5000);
+          ESP.restart();
+        }
+      }  
+
+      positionFlag = FLAG_UNSET;   // Unset the positonFlag variable
+      state = normal; // change state back to normal
+
+      // Send positive notification 
+      Serial.println("Got Position! Sending Ack");
+      Tx_Doc["message_type"] = "ACK";
+      Tx_Doc["data"] = "SET";
+      serializeJson(Tx_Doc, Tx_Json);
+      Serial.print("TX :");
+      Serial.println(Tx_Json);
+      ws.textAll(Tx_Json);
+      Tx_Json.clear();
   }
 
 }

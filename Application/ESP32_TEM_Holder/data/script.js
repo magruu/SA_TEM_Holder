@@ -57,6 +57,8 @@ function set_slider_pos(){
   var slider = document.getElementById("sliderWithValue");
   var output = document.getElementById('value');
 
+  var button = document.getElementById('button_holder_set');
+
   var probe_pos_1 = document.getElementById("Probe_Pos_1");
   var probe_pos_2 = document.getElementById("Probe_Pos_2");
   var probe_pos_3 = document.getElementById("Probe_Pos_3");
@@ -83,6 +85,8 @@ function set_probe_pos(id){
 
   var slider = document.getElementById("sliderWithValue");
   var output = document.getElementById('value');
+
+  var button = document.getElementById('button_holder_set');
 
   var pos_1 = parseInt(slider.min) + 50;
   var pos_2 = (slider.max - slider.min)/2;
@@ -207,20 +211,14 @@ function switch_Precision_Mode(){
 
 // change to Calibration Mode
 function calibrate(){
-  var button = document.getElementById('button_holder_calibrate');
-  var button_holder_set = document.getElementById('button_holder_set');
-  var button_holder_homing = document.getElementById('button_holder_homing');
 
   if (confirm("Your about to enter Calibration Mode! Are you sure?")) {
-    addNotification(notification_msg_calibration);
-    button.classList += ' is-loading';
-    button_holder_set.disabled = true;
-    button_holder_homing.disabled = true;
 
     var Tx_Json = { "message_type"  :   "STATUS",
                     "data"          :   "calibration"};
     console.log('TX: ' + JSON.stringify(Tx_Json));
     webSocket.send(JSON.stringify(Tx_Json));
+    Tx_Json = undefined;
   } else{
     removeNotification(notification_id_calibration);
   }
@@ -248,21 +246,14 @@ function calibrated(){
 }
 
 function homing(){
-  var button = document.getElementById('button_holder_homing');
-  var button_holder_set = document.getElementById('button_holder_set');
-  var button_holder_calibrate = document.getElementById('button_holder_calibrate');
-
   if (confirm("Your about to bring Holder to home position! Are you sure?")) {
-    addNotification(notification_msg_homing);
-    button.classList += ' is-loading';
-    button_holder_set.disabled = true;
-    button_holder_calibrate.disabled = true;
 
     var Tx_Json = { "message_type"  :   "STATUS",
                     "data"          :   "homing"};
 
     console.log('TX: ' + JSON.stringify(Tx_Json));
     webSocket.send(JSON.stringify(Tx_Json));
+    Tx_Json = undefined;
   } else {
     removeNotification(notification_id_homing);
   }
@@ -308,7 +299,7 @@ function get_message_handler(event){
   const json = JSON.parse(event.data);
 
   switch (json.message_type) {
-    case 'POSITION':
+    case 'POSITION_FRONTEND':
         get_position_handler(json.data);
       break;
     case 'ACK':
@@ -328,6 +319,38 @@ function get_position_handler(data){
   var slider = document.getElementById("sliderWithValue");
   slider.value = data;
   set_slider_pos();
+}
+
+function block_clients_positioning(){
+  var button = document.getElementById('button_holder_set');
+  var button_holder_homing = document.getElementById('button_holder_homing');
+  var button_holder_calibrate = document.getElementById('button_holder_calibrate');
+
+  button.className += " is-loading";
+  button_holder_homing.disabled = true;
+  button_holder_calibrate.disabled = true;
+  addNotification(notification_msg_setting_position);
+}
+
+
+function block_clients_homing(){
+  var button = document.getElementById('button_holder_homing');
+  var button_holder_set = document.getElementById('button_holder_set');
+  var button_holder_calibrate = document.getElementById('button_holder_calibrate');
+  addNotification(notification_msg_homing);
+  button.classList += ' is-loading';
+  button_holder_set.disabled = true;
+  button_holder_calibrate.disabled = true;
+}
+
+function block_clients_calibration(){
+  var button = document.getElementById('button_holder_calibrate');
+  var button_holder_set = document.getElementById('button_holder_set');
+  var button_holder_homing = document.getElementById('button_holder_homing');
+  addNotification(notification_msg_calibration);
+  button.classList += ' is-loading';
+  button_holder_set.disabled = true;
+  button_holder_homing.disabled = true;
 }
 
 // Acknowledgement Handler: Checks if Position is set
@@ -377,6 +400,16 @@ function get_status_handler(data){
       console.log("Calibration Error received!");
       addNotification(notification_msg_calibration_error);
       break;
+    case "positioning_frontend":
+      console.log("Holder is positioning!")
+      block_clients_positioning();
+      break;
+    case "homing_frontend":
+      block_clients_homing();
+      break;
+    case "calibration_frontend":
+      block_clients_calibration();
+      break;
     default:
       break;
   }
@@ -392,17 +425,9 @@ function get_status_handler(data){
 
 //Sets holder position, sends toast/notification and sends desired holder position to backend
 function set_holder_pos(){
-  var button = document.getElementById('button_holder_set');
   var value = document.getElementById('sliderWithValue').value; // slider value
-  var button_holder_homing = document.getElementById('button_holder_homing');
-  var button_holder_calibrate = document.getElementById('button_holder_calibrate');
 
-  button.className += " is-loading";
-  button_holder_homing.disabled = true;
-  button_holder_calibrate.disabled = true;
-  addNotification(notification_msg_setting_position);
-
-  var Tx_Json = { "message_type" : "POSITION",
+  Tx_Json = { "message_type" : "POSITION",
                   "data" : value};
 
   console.log(value);
@@ -411,5 +436,13 @@ function set_holder_pos(){
   webSocket.send(JSON.stringify(Tx_Json)); // send slider value to backend
 
   Tx_Json = undefined;
+
+  Tx_Json = { "message_type" : "STATUS",
+              "data" : "positioning"};
+
+  webSocket.send(JSON.stringify(Tx_Json)); // send slider value to backend
+
+  Tx_Json = undefined;
+
 
 }

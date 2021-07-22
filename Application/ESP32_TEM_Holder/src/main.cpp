@@ -39,6 +39,7 @@ const char* password = "jumbo8+Cloud";
 
 bool positionFlag = FLAG_UNSET;
 bool calibrationFlag = FLAG_UNSET;
+bool samePositionFlag = FLAG_UNSET;
 
 // Timer for the periodic interrupt
 hw_timer_t * timer1 = NULL;
@@ -204,7 +205,7 @@ void setPosition(uint32_t position){
   } else if (currentPosition > desiredPosition){
     driver.SGTHRS(STALL_VALUE_LEFT);
     driver.shaft(left);
-  } 
+    }
   digitalWrite(EN_PIN, LOW);  // Enable the Stepper Driver
   timerAlarmEnable(timer1);
 }
@@ -327,10 +328,13 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
 
     Rx_Json = (char*) data;
     deserializeJson(Rx_Doc, Rx_Json);
-
+    Rx_Json.clear();
     const char* expression = (const char*)Rx_Doc["message_type"];
 
     if(!strcmp(expression, "POSITION")){ 
+      if(rawDesiredPosition == (uint32_t)Rx_Doc["data"]){
+        samePositionFlag = FLAG_SET;
+      } 
       rawDesiredPosition = (uint32_t)Rx_Doc["data"];
       state = setting;
     }else if(!strcmp(expression, "ACK")){
@@ -338,11 +342,27 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
     }else if(!strcmp(expression, "STATUS")){
 
       if(!strcmp(Rx_Doc["data"], "calibration")){
+        Tx_Doc["message_type"] = "STATUS";
+        Tx_Doc["data"] = "calibration_frontend";
+        serializeJson(Tx_Doc, Tx_Json);
+        ws.textAll( Tx_Json);
+        Tx_Json.clear();
         state = calibration;
         calibrationFlag = FLAG_UNSET;
       }else if(!strcmp(Rx_Doc["data"], "homing")){
+        Tx_Doc["message_type"] = "STATUS";
+        Tx_Doc["data"] = "homing_frontend";
+        serializeJson(Tx_Doc, Tx_Json);
+        ws.textAll( Tx_Json);
+        Tx_Json.clear();
         state = homing;
         positionFlag =  FLAG_UNSET;
+      }else if(!strcmp(Rx_Doc["data"], "positioning")){
+        Tx_Doc["message_type"] = "STATUS";
+        Tx_Doc["data"] = "positioning_frontend";
+        serializeJson(Tx_Doc, Tx_Json);
+        ws.textAll( Tx_Json);
+        Tx_Json.clear();
       }
       
     }
@@ -358,7 +378,7 @@ void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType 
   switch (type) {
     case WS_EVT_CONNECT:    // New client connected 
       Serial.printf("WebSocket client #%u connected from %s\n", client->id(), client->remoteIP().toString().c_str());
-      Tx_Doc["message_type"] = "POSITION";
+      Tx_Doc["message_type"] = "POSITION_FRONTEND";
       Tx_Doc["data"] = rawDesiredPosition;
       serializeJson(Tx_Doc, Tx_Json);
       ws.text(client->id(), Tx_Json);
@@ -369,7 +389,8 @@ void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType 
       break;
     case WS_EVT_DATA:       // Data was received
       handleWebSocketMessage(arg, data, len);
-      Tx_Doc["message_type"] = "POSITION";
+      // send data to every client
+      Tx_Doc["message_type"] = "POSITION_FRONTEND";
       Tx_Doc["data"] = rawDesiredPosition;
       serializeJson(Tx_Doc, Tx_Json);
       ws.textAll( Tx_Json);
@@ -573,6 +594,10 @@ void loop(){
       positionFlag = FLAG_UNSET;   // Unset the positonFlag variable
       state = normal; // change state back to normal
 
+      if(samePositionFlag == FLAG_SET){
+        delay(500);
+        samePositionFlag = FLAG_UNSET;
+      }
       // Send positive notification 
       Serial.println("Got Position! Sending Ack");
       Tx_Doc["message_type"] = "ACK";
@@ -617,6 +642,13 @@ void loop(){
       Serial.println(Tx_Json);
       ws.textAll(Tx_Json);
       Tx_Json.clear();  
+      delay(100);
+      Tx_Doc["message_type"] = "POSITION_FRONTEND";
+      Tx_Doc["data"] = HOME_HOLDER_VALUE;
+      serializeJson(Tx_Doc, Tx_Json);
+      ws.textAll(Tx_Json);
+      Tx_Json.clear();
+
   } else if (state == startup){
       setPosition(POS_1_HOLDER_FRONTEND_VALUE); // actual function call
 

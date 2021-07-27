@@ -12,12 +12,6 @@
  * 
  * *******************************************************/
 
-// const char* ssid = "NETGEAR";
-// const char* password = "mhsi12jaia";
-
-// const char* ssid = "MagruuFi";
-// const char* password = "kayabanana";
-
 const char* ssid = "ZMB-Y42F54-WIFI"; // ZMB Credentials
 const char* password = "jumbo8+Cloud";
 
